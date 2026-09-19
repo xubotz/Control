@@ -1,0 +1,2009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PolygonTimeLock — Control Panel</title>
+<link rel="icon" type="image/png" href="goa10x-logo-master-transparent.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFF6E0;
+    --bg-grad-top:#5FCBD1;
+    --bg-grad-bot:#FBCF6B;
+    --panel:#FFFCF3;
+    --panel-alt:#FDF0CE;
+    --border:#D9B26A;
+    --text:#4A2E17;
+    --muted:#9A7B4F;
+    --accent:#2AA7C9;
+    --accent-dim:#BFE7EE;
+    --warn:#E8A93B;
+    --warn-dim:#F8E3B0;
+    --danger:#D9635A;
+    --danger-dim:#F5D8D3;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg) linear-gradient(180deg, var(--bg-grad-top) 0%, var(--bg) 32%, var(--bg) 100%) no-repeat;
+    background-attachment:fixed;
+    color:var(--text);
+    font-family:'Baloo 2', 'Segoe UI', sans-serif;
+    font-size:14px;
+    line-height:1.5;
+    padding:32px 20px 80px;
+  }
+  .mono{font-family:'IBM Plex Mono', ui-monospace, Consolas, monospace;}
+  .wrap{
+    max-width:900px;margin:0 auto;background:var(--panel);
+    border:1px solid var(--border);border-radius:20px;
+    padding:28px 32px 40px;box-shadow:0 14px 34px rgba(74,46,23,0.18);
+  }
+
+  header.top{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    gap:16px;flex-wrap:wrap;
+    padding-bottom:20px;border-bottom:2px solid var(--border);margin-bottom:28px;
+  }
+  .brand-row{display:flex;align-items:center;gap:12px;}
+  .brand-row img.brand-logo{width:44px;height:44px;border-radius:50%;flex-shrink:0;box-shadow:0 2px 8px rgba(74,46,23,0.25);}
+  header.top h1{font-size:20px;font-weight:700;margin:0 0 4px;letter-spacing:-0.01em;}
+  header.top p{margin:0;color:var(--muted);font-size:13px;max-width:560px;}
+  .wallet-box{display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+  .badge{
+    font-size:12px;padding:3px 8px;border-radius:var(--radius);border:1px solid var(--border);
+    color:var(--muted);
+  }
+  .badge.ok{color:var(--accent);border-color:var(--accent-dim);}
+  .badge.bad{color:var(--danger);border-color:var(--danger-dim);}
+
+  button{
+    font-family:'Baloo 2', inherit;font-size:13px;font-weight:600;
+    background:var(--panel-alt);color:var(--text);
+    border:1px solid var(--border);border-radius:999px;
+    padding:9px 16px;cursor:pointer;transition:transform 0.08s ease, filter 0.15s ease;
+  }
+  button:hover:not(:disabled){filter:brightness(1.05);transform:translateY(-1px);}
+  button:disabled{opacity:0.45;cursor:not-allowed;transform:none;}
+  button.primary{background:var(--accent);color:#FFFFFF;border-color:var(--accent);box-shadow:0 3px 0 rgba(0,0,0,0.12);}
+  button.primary:hover:not(:disabled){background:#3BC0E4;}
+  button.risk{background:var(--warn-dim);color:#7A4E12;border-color:var(--warn);}
+  button.risk:hover:not(:disabled){background:var(--warn);color:#fff;}
+  button.danger{background:var(--danger-dim);color:#7A2A24;border-color:var(--danger);}
+  button.danger:hover:not(:disabled){background:var(--danger);color:#fff;}
+  button.small{padding:6px 12px;font-size:12px;}
+
+  section{margin-bottom:32px;}
+  section > h2{
+    font-size:14px;font-weight:600;margin:0 0 4px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  section > p.desc{color:var(--muted);margin:0 0 14px;font-size:13px;}
+
+  .panel{
+    background:var(--panel-alt);border:1px solid var(--border);border-radius:var(--radius);
+    padding:18px 18px 6px;
+  }
+
+  .row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:9px 0;border-bottom:1px solid var(--border);gap:16px;flex-wrap:wrap;
+  }
+  .row:last-child{border-bottom:none;}
+  .row .label{color:var(--muted);}
+  .row .value{text-align:right;}
+
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px;}
+  .field input, .field select{
+    width:100%;background:#FFFFFF;border:1px solid var(--border);border-radius:8px;
+    color:var(--text);padding:9px 10px;font-family:'IBM Plex Mono', monospace;font-size:13px;
+  }
+  .field input:focus, .field select:focus{outline:none;border-color:var(--accent);}
+  .field-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .field-row .field{flex:1;min-width:160px;}
+
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 18px;}
+
+  .status-line{font-size:12.5px;color:var(--muted);min-height:18px;margin-top:-6px;margin-bottom:14px;white-space:pre-wrap;}
+  .status-line.ok{color:var(--accent);}
+  .status-line.err{color:var(--danger);}
+
+  .subsection{border-top:1px solid var(--border);padding-top:16px;margin-top:16px;}
+  .subsection:first-of-type{border-top:none;padding-top:0;margin-top:0;}
+  .subsection h3{font-size:13px;font-weight:600;margin:0 0 3px;}
+  .subsection p.note{color:var(--muted);font-size:12.5px;margin:0 0 12px;}
+
+  .gate{
+    padding:14px 16px;border:1px dashed var(--border);border-radius:var(--radius);
+    color:var(--muted);font-size:13px;margin-bottom:16px;
+  }
+
+  .divider{height:1px;background:var(--border);margin:0 0 20px;}
+  a{color:var(--accent);font-weight:600;}
+  ::placeholder{color:#C9AD82;}
+
+  /* ---------------- Stat cards ---------------- */
+  .stat-grid{
+    display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+    gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);
+    overflow:hidden;
+  }
+  .stat-card{background:var(--panel);padding:14px 16px;}
+  .stat-card .stat-label{color:var(--muted);font-size:11.5px;margin-bottom:6px;}
+  .stat-card .stat-value{font-family:'IBM Plex Mono', monospace;font-size:15px;font-weight:500;word-break:break-word;}
+  .stat-card .stat-sub{color:var(--muted);font-size:11px;margin-top:3px;}
+  .stat-card.accent .stat-value{color:var(--accent);}
+  .stat-card.warn .stat-value{color:var(--warn);}
+
+  /* ---------------- Progress bar ---------------- */
+  .progress-wrap{margin:14px 0 4px;}
+  .progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px;}
+  .progress-track{height:6px;background:var(--panel-alt);border:1px solid var(--border);border-radius:99px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--accent);border-radius:99px;transition:width 0.3s ease;}
+
+  /* ---------------- Tabs ---------------- */
+  .tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:20px;}
+  .tab-btn{
+    background:transparent;border:none;border-radius:0;padding:10px 4px;margin-right:22px;
+    font-size:13.5px;font-weight:500;color:var(--muted);cursor:pointer;
+    border-bottom:2px solid transparent;position:relative;top:1px;
+  }
+  .tab-btn:hover{color:var(--text);border-color:transparent;}
+  .tab-btn.active{color:var(--text);border-bottom-color:var(--accent);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  /* ---------------- Tables (Reports) ---------------- */
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th, td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--border);white-space:nowrap;}
+  th{color:var(--muted);font-weight:500;position:sticky;top:0;background:var(--panel);}
+  td.wrap-cell{white-space:normal;}
+  .table-scroll{max-height:420px;overflow:auto;border:1px solid var(--border);border-radius:var(--radius);}
+  .tag{font-size:11px;padding:2px 6px;border-radius:2px;border:1px solid var(--border);color:var(--muted);}
+  .tag.in{color:var(--accent);border-color:var(--accent-dim);}
+  .tag.out{color:var(--warn);border-color:var(--warn-dim);}
+  .tag.fee{color:#A6459E;border-color:#EAC7E6;}
+  .tag.admin{color:var(--danger);border-color:var(--danger-dim);}
+
+  /* ---------------- Hero (simple entry point for non-technical users) ---------------- */
+  .hero{
+    text-align:center;padding:28px 16px 32px;margin-bottom:28px;
+    border-bottom:2px solid var(--border);
+  }
+  .hero .hero-icon{font-size:34px;margin-bottom:6px;}
+  .hero h2{font-size:22px;margin:0 0 8px;font-weight:700;}
+  .hero p{color:var(--muted);max-width:520px;margin:0 auto 20px;font-size:13.5px;line-height:1.55;}
+  .hero .fee-pill{
+    display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
+    background:var(--accent-dim);color:#1B7A93;border:1px solid var(--accent);
+    border-radius:999px;padding:5px 14px;margin-bottom:18px;
+  }
+  .hero button.cta{
+    font-size:15px;padding:15px 30px;box-shadow:0 4px 0 rgba(0,0,0,0.14);
+  }
+  .hero .hero-sub{font-size:12px;color:var(--muted);margin-top:12px;}
+  .hero .hero-sub button{background:none;border:none;color:var(--accent);font-weight:600;padding:0;text-decoration:underline;cursor:pointer;}
+
+  /* ---------------- Advanced/collapsed details ---------------- */
+  details.advanced{margin-bottom:20px;}
+  details.advanced > summary{
+    cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);
+    list-style:none;padding:10px 14px;border:1px dashed var(--border);border-radius:var(--radius);
+    display:flex;align-items:center;gap:8px;user-select:none;
+  }
+  details.advanced > summary::-webkit-details-marker{display:none;}
+  details.advanced > summary::before{content:'▸';display:inline-block;transition:transform 0.15s ease;}
+  details.advanced[open] > summary::before{transform:rotate(90deg);}
+  details.advanced > summary:hover{color:var(--text);border-color:var(--accent-dim);}
+  details.advanced > .details-body{padding-top:14px;}
+
+  /* ---------------- Tooltips (tap-friendly for mobile) ---------------- */
+  .tip{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:16px;height:16px;border-radius:50%;flex-shrink:0;
+    background:var(--accent-dim);color:#1B7A93;border:1px solid var(--accent);
+    font-size:10px;font-weight:700;cursor:help;margin-left:5px;
+    position:relative;vertical-align:middle;line-height:1;
+  }
+  .tip .tip-bubble{
+    display:none;position:absolute;left:50%;bottom:135%;transform:translateX(-50%);
+    width:max-content;max-width:min(240px, 62vw);background:var(--text);color:#FFFCF3;
+    font-size:11.5px;font-weight:400;line-height:1.45;text-align:left;
+    padding:9px 11px;border-radius:9px;z-index:80;box-shadow:0 8px 20px rgba(0,0,0,0.28);
+  }
+  .tip .tip-bubble::after{
+    content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
+    border:5px solid transparent;border-top-color:var(--text);
+  }
+  .tip.open .tip-bubble,
+  .tip:hover .tip-bubble,
+  .tip:focus .tip-bubble,
+  .tip:focus-visible .tip-bubble{display:block;}
+  h2 .tip, h3 .tip{font-weight:700;}
+
+  /* ---------------- In-page confirmation (replaces native confirm()) ---------------- */
+  .confirm-box{
+    margin-top:10px;padding:12px 14px;border:1px solid var(--danger-dim);
+    background:rgba(226,105,95,0.08);border-radius:var(--radius);
+  }
+  .confirm-recap{font-size:12.5px;line-height:1.6;}
+  .confirm-recap .mono{color:var(--text);}
+  .confirm-box .actions{margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand-row">
+      <a href="https://goa10x.in"><img class="brand-logo" src="goa10x-logo-master-transparent.png" alt="Goa10x logo" /></a>
+      <div>
+        <h1>PolygonTimeLock — Control Panel <span class="mono" style="font-size:11px;color:var(--muted);font-weight:400;">v9</span></h1>
+        <p>Create schedules, claim payouts, and review activity directly against the contract. This contract can hold locks in <strong>any</strong> Polygon ERC-20 token at once — every action below asks which token it applies to. <strong>Trustless self-lock:</strong> anyone can lock their own tokens for themselves in the Claim tab below, with no owner involvement — that schedule can then never be cancelled or changed by the owner, or anyone else, ever. Owner-created locks become the same kind of permanent, uncancellable self-lock whenever the beneficiary is the owner's own address — see the notes below.</p>
+      </div>
+    </div>
+    <div class="wallet-box">
+      <span id="networkBadge" class="badge">Not connected</span>
+      <button id="connectBtn" class="primary small">Connect wallet</button>
+      <button id="connectWcBtn" class="small" title="Scan a QR code, or pick a mobile wallet — for wallets with no browser extension">WalletConnect</button>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="hero-icon">🔒</div>
+    <h2>Set a Time Lock for Your Crypto</h2>
+    <p>Lock your tokens now and have them unlock automatically on the schedule you choose — daily, weekly, monthly, whatever you pick. Nobody, including us, can cancel or touch a self-lock once it's created.</p>
+    <div class="fee-pill">💰 Flat 1% fee, sent to <span class="mono" id="topFeeNoticeAddr">the fee address</span> — nothing extra when you claim
+      <span class="tip" tabindex="0">ⓘ<span class="tip-bubble">Example: lock 1,000 USDT → 10 USDT (1%) goes to the service fee address right away, 990 USDT is scheduled for you. Every future claim pays out in full, no further fee.</span></span>
+    </div>
+    <div class="actions" style="justify-content:center;">
+      <button id="heroStartBtn" type="button" class="primary cta">Set My Time Lock</button>
+    </div>
+    <div class="hero-sub">Already set one up? <button id="heroCheckBtn" type="button">Check my lock status</button></div>
+  </div>
+
+  <details class="advanced">
+    <summary>⚙️ Advanced: contract &amp; connection details <span style="font-weight:400;">(optional — most people can skip this)</span></summary>
+    <div class="details-body">
+      <section>
+        <h2>Contract</h2>
+        <p class="desc">This panel is wired directly to the deployed contract below — no need to paste an address. All figures read directly from the chain.</p>
+        <div class="panel">
+          <div class="field-row">
+            <div class="field">
+              <label for="contractAddr">Contract address (deployed)
+                <span class="tip" tabindex="0">ⓘ<span class="tip-bubble">The blockchain address of this locking service's smart contract. It's fixed and already filled in — you never need to change or paste anything here. Use "Verify" to see its public source code on PolygonScan.</span></span>
+              </label>
+              <input id="contractAddr" type="text" value="0xc038916F6793E9D60539A9c424653e0D1c43196f" readonly />
+            </div>
+            <div class="field" style="flex:0 0 auto;align-self:flex-end;">
+              <a id="verifyContractLink" href="https://polygonscan.com/address/0xc038916F6793E9D60539A9c424653e0D1c43196f#code" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                <button type="button" class="small" style="white-space:nowrap;">🔎 Verify contract on PolygonScan</button>
+              </a>
+            </div>
+            <div class="field"><label for="deployBlock">Deployment block (optional, speeds up reports)
+              <span class="tip" tabindex="0">ⓘ<span class="tip-bubble">Only used by the Reports tab, to avoid scanning the entire chain history for events. Leave blank unless a report scan is timing out.</span></span>
+            </label><input id="deployBlock" type="text" placeholder="e.g. 58000000" /></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="customRpc">Custom RPC URL (optional — used for reads with no wallet installed, or if scans get rate-limited)
+              <span class="tip" tabindex="0">ⓘ<span class="tip-bubble">Only needed if you're browsing without a wallet installed and the default public node is slow, or a Reports scan gets rate-limited. Leave blank otherwise.</span></span>
+            </label><input id="customRpc" type="text" placeholder="https://…" /></div>
+          </div>
+          <div class="actions">
+            <button id="loadContractBtn">Reload contract data</button>
+          </div>
+          <div id="contractStatus" class="status-line"></div>
+          <div id="contractInfo" style="display:none;">
+            <div class="stat-grid">
+              <div class="stat-card">
+                <div class="stat-label">Owner</div>
+                <div class="stat-value" id="infoOwner">—</div>
+              </div>
+              <div class="stat-card warn">
+                <div class="stat-label">Deposit fee</div>
+                <div class="stat-value" id="infoFee">—</div>
+              </div>
+            </div>
+            <div class="subsection">
+              <h3>Look up a token</h3>
+              <p class="note">This contract can hold locks in any number of different ERC-20 tokens at once, so balance/locked/surplus figures are per-token — enter one to check it. Every other action below (claim, create lock, etc.) also takes its own token address.</p>
+              <div class="field-row">
+                <div class="field"><label for="tokLookupAddrPick">Common tokens</label><select id="tokLookupAddrPick" class="token-picker" data-target="tokLookupAddr"></select></div><div class="field"><label for="tokLookupAddr">Token address</label><input id="tokLookupAddr" type="text" placeholder="0x… e.g. Polygon USDT 0xc2132D05D31c914a87C6611C10748AEb04B58e8F" /></div>
+              </div>
+              <div class="actions"><button id="tokLookupBtn">Check token</button></div>
+              <div id="tokLookupStatus" class="status-line"></div>
+              <div id="tokLookupInfo" style="display:none;">
+                <div class="stat-grid">
+                  <div class="stat-card">
+                    <div class="stat-label">Symbol / decimals</div>
+                    <div class="stat-value" id="tlSymbol">—</div>
+                  </div>
+                  <div class="stat-card accent">
+                    <div class="stat-label">Contract balance</div>
+                    <div class="stat-value" id="tlBalance">—</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="stat-label">Owed to beneficiaries</div>
+                    <div class="stat-value" id="tlLocked">—</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="stat-label">Unallocated surplus</div>
+                    <div class="stat-value" id="tlSurplus">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </details>
+
+  <div id="afterLoad" style="display:none;">
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="claim">Claim / Create lock</button>
+      <button class="tab-btn" data-tab="admin">Admin <span style="font-weight:400;font-size:11px;">(owner only)</span></button>
+      <button class="tab-btn" data-tab="reports">Activity history</button>
+    </div>
+
+    <!-- ============================== CLAIM ============================== -->
+    <div class="tab-panel active" id="tab-claim">
+      <section style="margin-bottom:0;">
+        <p class="desc">Check any lock's status. Only the connected wallet's own lock can be claimed from.</p>
+        <div class="gate" id="feeNotice" style="border-color:var(--warn-dim);color:var(--warn);">
+          A flat 1% service fee is deducted once, up front, when your lock is created or topped up, and
+          sent directly to the service's fee address (<span class="mono" id="feeNoticeAddr">—</span>).
+          It is <strong>not</strong> deducted again at claim time — every claim pays out your full
+          scheduled claim amount, in full, into your wallet.
+        </div>
+        <div class="panel">
+          <div class="field-row">
+            <div class="field">
+              <label for="claimAddr">Beneficiary address
+                <span class="tip" tabindex="0">ⓘ<span class="tip-bubble">The wallet the lock pays out to. Leave blank to check your own connected wallet — only fill this in to look up someone else's lock.</span></span>
+              </label>
+              <input id="claimAddr" type="text" placeholder="0x… (defaults to connected wallet)" />
+            </div>
+            <div class="field">
+              <label for="claimTokenPick">Common tokens</label>
+              <select id="claimTokenPick" class="token-picker" data-target="claimToken"></select>
+            </div>
+            <div class="field">
+              <label for="claimToken">Token address
+                <span class="tip" tabindex="0">ⓘ<span class="tip-bubble">Which cryptocurrency the lock you're checking is in (e.g. USDT). Pick from "Common tokens" or paste the token's contract address.</span></span>
+              </label>
+              <input id="claimToken" type="text" placeholder="0x… which token's lock to check" />
+            </div>
+          </div>
+          <div class="actions">
+            <button id="checkLockBtn">Check lock</button>
+          </div>
+          <div id="claimStatus" class="status-line"></div>
+          <div id="claimInfo" style="display:none;">
+
+            <div id="cSelfLockBadge" class="note" style="display:none;border-left:2px solid var(--danger-dim);padding-left:8px;margin-bottom:10px;">🔒 <strong>Trustless self-lock</strong> — this schedule can never be cancelled or edited by anyone, including the contract owner (present or future). Funds only leave via <span class="mono">claim()</span> on the schedule below.</div>
+
+            <div class="progress-wrap">
+              <div class="progress-label">
+                <span>Remaining <span class="mono" id="cRemaining">—</span></span>
+                <span>Total deposited <span class="mono" id="cTotal">—</span></span>
+              </div>
+              <div class="progress-track"><div class="progress-fill" id="cProgressFill" style="width:0%;"></div></div>
+            </div>
+
+            <div class="row"><span class="label">Amount per claim</span><span class="value mono" id="cClaimAmount">—</span></div>
+            <div class="row"><span class="label">Frequency</span><span class="value mono" id="cFrequency">—</span></div>
+            <div class="row"><span class="label">Start time</span><span class="value mono" id="cStart">—</span></div>
+            <div class="row"><span class="label">Last claim</span><span class="value mono" id="cLastClaim">—</span></div>
+            <div class="row"><span class="label">Next claim</span><span class="value mono" id="cNext">—</span></div>
+            <div class="row"><span class="label">Next claim — you receive (no fee)</span><span class="value mono" id="cNet">—</span></div>
+          </div>
+          <div class="actions">
+            <button id="claimBtn" class="primary" disabled>Claim now</button>
+          </div>
+          <div id="claimTxStatus" class="status-line"></div>
+        </div>
+      </section>
+
+      <section style="margin-bottom:0;">
+        <h2>Create a self-lock <span class="mono" style="font-size:11px;color:var(--muted);font-weight:400;">trustless · self-service</span></h2>
+        <p class="desc">Lock your <strong>own</strong> tokens for your <strong>own</strong> wallet, directly — no owner approval, no owner transaction, no owner involvement of any kind. Because you are both the depositor and the beneficiary, this is <strong>trustless by construction</strong>: the moment your transaction confirms, the schedule is permanent. It can never be cancelled or edited by the contract owner, any future owner, or anyone else — the only way these funds ever move is your own <span class="mono">claim()</span> calls, on the exact schedule you set here.</p>
+        <div class="panel">
+
+          <div class="subsection">
+            <h3>Create self-lock</h3>
+            <p class="note">Pulls <span class="mono">totalAmount</span> of the chosen token from your connected wallet and locks it for your connected wallet to claim later. A flat 1% fee is deducted immediately and sent to the fee address — only the remaining 99% is credited to your lock.</p>
+            <div class="note" style="border-left:2px solid var(--danger-dim);padding-left:8px;">🔒 <strong>This cannot be undone.</strong> There is no cancel button for a self-lock — not for you, not for the contract owner, not ever. Double-check the token, total amount, per-claim amount, and frequency before confirming.</div>
+            <div class="field-row">
+              <div class="field"><label for="slTokenPick">Common tokens</label><select id="slTokenPick" class="token-picker" data-target="slToken"></select></div><div class="field"><label for="slToken">Token address
+                <span class="tip" tabindex="0">ⓘ<span class="tip-bubble">Which cryptocurrency you're locking (e.g. USDT, USDC). Pick one from "Common tokens" or paste its contract address — double-check it on PolygonScan first.</span></span>
+              </label><input id="slToken" type="text" placeholder="0x…" /></div>
+              <div class="field"><label for="slTotal">Total amount
+                <span class="tip" tabindex="0">ⓘ<span class="tip-bubble">The full amount you're locking, before the 1% fee. Example: enter 1000 → 10 goes to the fee, 990 is scheduled to unlock to you over time.</span></span>
+              </label><input id="slTotal" type="text" placeholder="3000" /></div>
+              <div class="field"><label for="slClaim">Amount per claim
+                <span class="tip" tabindex="0">ⓘ<span class="tip-bubble">How much unlocks each time you claim. Example: total 1000, claim amount 100 → you can claim 100 every period (see Frequency) until it's all gone.</span></span>
+              </label><input id="slClaim" type="text" placeholder="100" /></div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="slFrequency">Frequency
+                  <span class="tip" tabindex="0">ⓘ<span class="tip-bubble">How often a new claim becomes available (e.g. "Daily" = you can claim once every 24 hours). Claiming isn't automatic — you (or anyone) must call claim once each period unlocks.</span></span>
+                </label>
+                <select id="slFrequency">
+                  <option value="3600">Hourly</option>
+                  <option value="86400" selected>Daily</option>
+                  <option value="604800">Weekly</option>
+                  <option value="2592000">Monthly (30 days)</option>
+                  <option value="31536000">Yearly (365 days)</option>
+                  <option value="custom">Custom (seconds)</option>
+                </select>
+              </div>
+              <div class="field" id="slFrequencyCustomWrap" style="display:none;">
+                <label for="slFrequencyCustom">Custom seconds</label>
+                <input id="slFrequencyCustom" type="text" placeholder="e.g. 43200" />
+              </div>
+              <div class="field"><label for="slStart">Start time (optional)
+                <span class="tip" tabindex="0">ⓘ<span class="tip-bubble">When the schedule begins counting down. Leave blank to start immediately.</span></span>
+              </label><input id="slStart" type="datetime-local" /></div>
+            </div>
+            <div class="actions">
+              <button id="slApproveBtn">1. Approve token
+                <span class="tip" tabindex="0" style="margin-left:6px;">ⓘ<span class="tip-bubble">Step 1 of 2. This is a separate wallet signature that only grants this contract permission to pull your tokens — it does not move any funds yet. Required by every ERC-20 token, not specific to this app.</span></span>
+              </button>
+              <button id="slCreateBtn" class="primary" disabled>2. Create self-lock
+                <span class="tip" tabindex="0" style="margin-left:6px;">ⓘ<span class="tip-bubble">Step 2 of 2. This is the transaction that actually locks your tokens. It stays disabled until step 1 (Approve) confirms.</span></span>
+              </button>
+            </div>
+            <div id="slStatus" class="status-line"></div>
+          </div>
+
+          <div class="subsection">
+            <h3>Top up my self-lock</h3>
+            <p class="note">Adds funds to your own existing lock's remaining balance — whether it was created here or by the owner on your behalf — without changing its schedule. No owner involvement needed: you approve and top up directly. A flat 1% fee is deducted immediately and sent to the fee address.</p>
+            <div class="field-row">
+              <div class="field"><label for="tmTokenPick">Common tokens</label><select id="tmTokenPick" class="token-picker" data-target="tmToken"></select></div><div class="field"><label for="tmToken">Token address</label><input id="tmToken" type="text" placeholder="0x…" /></div>
+              <div class="field"><label for="tmAmount">Amount</label><input id="tmAmount" type="text" placeholder="500" /></div>
+            </div>
+            <div class="actions">
+              <button id="tmApproveBtn">1. Approve token</button>
+              <button id="tmTopUpBtn" class="primary" disabled>2. Top up</button>
+            </div>
+            <div id="tmStatus" class="status-line"></div>
+          </div>
+
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================== ADMIN ============================== -->
+    <div class="tab-panel" id="tab-admin">
+      <section style="margin-bottom:0;">
+        <p class="desc">Owner-only actions. Every call here reverts on-chain if the connected wallet isn't the owner — buttons are disabled locally as a convenience, so no wasted gas. <strong>If you're a customer setting up your own lock, use the "Create a self-lock" section under the Claim tab instead</strong> — it needs no owner involvement.</p>
+        <div id="ownerGate" class="gate">Connect the owner wallet to enable these actions.</div>
+
+        <div class="panel">
+
+          <div class="subsection">
+            <h3>Create lock</h3>
+            <p class="note">Each beneficiary can hold one active lock <em>per token</em> — the same address can have an independent USDT lock and a WMATIC lock at once, but not two locks in the same token. Pulls <span class="mono">totalAmount</span> of the chosen token from your wallet on confirm. A flat 1% fee is deducted immediately from <span class="mono">totalAmount</span> and sent to the fee address — only the remaining 99% is credited to the beneficiary's lock.</p>
+            <p class="note" style="border-left:2px solid var(--danger-dim);padding-left:8px;"><strong>Self-lock rule (v9, trustless):</strong> if the beneficiary address below is the contract owner's own address, this lock becomes a permanent, trustless <strong>self-lock</strong> the moment it's created — neither <code>cancelLock</code> nor <code>updateLockParams</code> will ever work on it again, for this owner or any future owner. If a beneficiary wants to lock their <em>own</em> tokens for themselves with no owner involvement at all, point them to the <strong>Create a self-lock</strong> section under the Claim tab instead — that path (<span class="mono">createSelfLock</span>) always produces the same kind of permanent, uncancellable lock, for anyone, without you ever touching their funds. Locks you create here for someone else are unaffected and stay fully cancellable/editable as usual.</p>
+            <div class="field-row">
+              <div class="field"><label for="clBeneficiary">Beneficiary address
+                <span class="tip" tabindex="0">ⓘ<span class="tip-bubble">The wallet that will be able to claim from this lock. If this is your own address, the lock becomes a permanent, uncancellable self-lock — see the warning above.</span></span>
+              </label><input id="clBeneficiary" type="text" placeholder="0x…" /></div>
+              <div class="field"><label for="clTokenPick">Common tokens</label><select id="clTokenPick" class="token-picker" data-target="clToken"></select></div><div class="field"><label for="clToken">Token address</label><input id="clToken" type="text" placeholder="0x… e.g. Polygon USDT" /></div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label for="clTotal">Total amount
+                <span class="tip" tabindex="0">ⓘ<span class="tip-bubble">The full amount pulled from your wallet, before the 1% fee. 99% of it is what gets scheduled for the beneficiary.</span></span>
+              </label><input id="clTotal" type="text" placeholder="3000" /></div>
+              <div class="field"><label for="clClaim">Amount per claim
+                <span class="tip" tabindex="0">ⓘ<span class="tip-bubble">How much the beneficiary can withdraw each time they claim, once each period (see Frequency) has passed.</span></span>
+              </label><input id="clClaim" type="text" placeholder="100" /></div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="clFrequency">Frequency</label>
+                <select id="clFrequency">
+                  <option value="3600">Hourly</option>
+                  <option value="86400" selected>Daily</option>
+                  <option value="604800">Weekly</option>
+                  <option value="2592000">Monthly (30 days)</option>
+                  <option value="31536000">Yearly (365 days)</option>
+                  <option value="custom">Custom (seconds)</option>
+                </select>
+              </div>
+              <div class="field" id="clFrequencyCustomWrap" style="display:none;">
+                <label for="clFrequencyCustom">Custom seconds</label>
+                <input id="clFrequencyCustom" type="text" placeholder="e.g. 43200" />
+              </div>
+              <div class="field"><label for="clStart">Start time (optional)</label><input id="clStart" type="datetime-local" /></div>
+            </div>
+            <div class="actions">
+              <button id="clApproveBtn" disabled>1. Approve USDT</button>
+              <button id="clCreateBtn" class="primary" disabled>2. Create lock</button>
+            </div>
+            <div id="clStatus" class="status-line"></div>
+          </div>
+
+          <div class="subsection">
+            <h3>Top up</h3>
+            <p class="note">Adds funds to an existing lock's remaining balance without changing its schedule. A flat 1% fee is deducted immediately from this amount and sent to the fee address — only the remaining 99% is credited to the beneficiary's lock. Must match the token the lock was created with.</p>
+            <div class="field-row">
+              <div class="field"><label for="tuBeneficiary">Beneficiary address</label><input id="tuBeneficiary" type="text" placeholder="0x…" /></div>
+              <div class="field"><label for="tuTokenPick">Common tokens</label><select id="tuTokenPick" class="token-picker" data-target="tuToken"></select></div><div class="field"><label for="tuToken">Token address</label><input id="tuToken" type="text" placeholder="0x…" /></div>
+              <div class="field"><label for="tuAmount">Amount</label><input id="tuAmount" type="text" placeholder="500" /></div>
+            </div>
+            <div class="actions">
+              <button id="tuApproveBtn">1. Approve USDT</button>
+              <button id="tuTopUpBtn" class="primary" disabled>2. Top up</button>
+            </div>
+            <div id="tuStatus" class="status-line"></div>
+          </div>
+
+          <div class="subsection">
+            <h3>Update claim amount / frequency</h3>
+            <p class="note">Changes the schedule going forward. Does not affect what's already been claimed. Reverts on a self-lock (beneficiary's own address at creation, or created via self-service <span class="mono">createSelfLock</span>) — those schedules are fixed permanently and trustlessly, for the owner and everyone else, forever.</p>
+            <div class="field-row">
+              <div class="field"><label for="upBeneficiary">Beneficiary address</label><input id="upBeneficiary" type="text" placeholder="0x…" /></div>
+              <div class="field"><label for="upTokenPick">Common tokens</label><select id="upTokenPick" class="token-picker" data-target="upToken"></select></div><div class="field"><label for="upToken">Token address</label><input id="upToken" type="text" placeholder="0x…" /></div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label for="upClaim">New amount per claim</label><input id="upClaim" type="text" placeholder="150" /></div>
+              <div class="field">
+                <label for="upFrequency">New frequency</label>
+                <select id="upFrequency">
+                  <option value="3600">Hourly</option>
+                  <option value="86400" selected>Daily</option>
+                  <option value="604800">Weekly</option>
+                  <option value="2592000">Monthly (30 days)</option>
+                  <option value="31536000">Yearly (365 days)</option>
+                  <option value="custom">Custom (seconds)</option>
+                </select>
+              </div>
+              <div class="field" id="upFrequencyCustomWrap" style="display:none;">
+                <label for="upFrequencyCustom">Custom seconds</label>
+                <input id="upFrequencyCustom" type="text" placeholder="e.g. 43200" />
+              </div>
+            </div>
+            <div class="actions">
+              <button id="upBtn" disabled>Update lock params</button>
+            </div>
+            <div id="upStatus" class="status-line"></div>
+          </div>
+
+          <div class="subsection">
+            <h3>Cancel lock</h3>
+            <p class="note">Immediately deactivates the lock and sends the entire remaining balance to the refund address. Cannot be undone. Reverts on a self-lock (beneficiary's own address at creation, or created via self-service <span class="mono">createSelfLock</span>) — those can never be cancelled by the owner, by design. That's what makes a self-lock trustless: it's not "the current owner promises not to," it's the contract itself refusing the call, permanently, no matter who holds ownership.</p>
+            <div class="field-row">
+              <div class="field"><label for="ccBeneficiary">Beneficiary address</label><input id="ccBeneficiary" type="text" placeholder="0x…" /></div>
+              <div class="field"><label for="ccTokenPick">Common tokens</label><select id="ccTokenPick" class="token-picker" data-target="ccToken"></select></div><div class="field"><label for="ccToken">Token address</label><input id="ccToken" type="text" placeholder="0x…" /></div>
+              <div class="field"><label for="ccRefundTo">Refund to</label><input id="ccRefundTo" type="text" placeholder="0x…" /></div>
+            </div>
+            <div class="actions">
+              <button id="ccBtn" class="danger" disabled>Cancel lock &amp; refund</button>
+            </div>
+            <div id="ccStatus" class="status-line"></div>
+          </div>
+
+          <div class="subsection">
+            <h3>Rescue surplus</h3>
+            <p class="note">Recovers token balance that isn't owed to any beneficiary — either surplus above what's locked for a token already in use, or the entire balance of a token that's never been used in a lock at all (e.g. sent here by mistake). Works for any ERC-20 address; cannot touch funds owed to beneficiaries. v7 merges the old separate "rescue other token" action into this one — the contract computes the exact sweepable amount for you, so there's no amount field to get wrong.</p>
+            <div class="field-row">
+              <div class="field"><label for="rsTokenPick">Common tokens</label><select id="rsTokenPick" class="token-picker" data-target="rsToken"></select></div><div class="field"><label for="rsToken">Token address</label><input id="rsToken" type="text" placeholder="0x…" /></div>
+              <div class="field"><label for="rsTo">Send surplus to</label><input id="rsTo" type="text" placeholder="0x…" /></div>
+            </div>
+            <div class="actions">
+              <button id="rsBtn" class="risk" disabled>Rescue surplus</button>
+            </div>
+            <div id="rsStatus" class="status-line"></div>
+          </div>
+
+          <div class="subsection">
+            <h3>Transfer ownership</h3>
+            <p class="note">Hands admin control of the entire contract — every lock — to a new address. Cannot be undone from here.</p>
+            <div class="field"><label for="toNewOwner">New owner address</label><input id="toNewOwner" type="text" placeholder="0x…" /></div>
+            <div class="actions">
+              <button id="toBtn" class="danger" disabled>Transfer ownership</button>
+            </div>
+            <div id="toStatus" class="status-line"></div>
+          </div>
+
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================== REPORTS ============================== -->
+    <div class="tab-panel" id="tab-reports">
+      <section style="margin-bottom:24px;">
+        <p class="desc">Pulled directly from chain logs. Scan once, then filter, review the fee/claim totals, and export to CSV.</p>
+        <div class="panel">
+          <div class="field-row">
+            <div class="field"><label for="scanFrom">From block</label><input id="scanFrom" type="text" placeholder="auto-filled from deployment block" /></div>
+            <div class="field"><label for="scanChunk">Chunk size (blocks per request)</label><input id="scanChunk" type="text" value="4000" /></div>
+          </div>
+          <div class="actions">
+            <button id="scanBtn" class="primary">Scan transactions</button>
+            <button id="loadTimestampsBtn" disabled>Load timestamps</button>
+            <button id="exportCsvBtn" disabled>Export CSV</button>
+          </div>
+          <div id="scanStatus" class="status-line"></div>
+        </div>
+      </section>
+
+      <section id="reportSummarySection" style="display:none;">
+        <h2>Summary</h2>
+        <p class="desc">Totals across every scanned event, broken out <strong>per token</strong> — raw amounts in different tokens can't be added together (a contract holding both USDT and WMATIC would produce a meaningless combined number), so each token used gets its own card group below. Deposit figures are net of the 1% fee; fees are shown separately.</p>
+        <div id="reportSummaryByToken"><!-- one block per token, populated by renderSummary() --></div>
+      </section>
+
+      <section>
+        <h2>Event history</h2>
+        <p class="desc">Every event this contract has ever emitted, in order.</p>
+        <div class="panel" style="padding:14px 14px 14px;">
+          <div class="field-row" style="margin-bottom:0;">
+            <div class="field">
+              <label for="reportFilterAddr">Filter by beneficiary / address (optional)</label>
+              <input id="reportFilterAddr" type="text" placeholder="0x…" />
+            </div>
+            <div class="field">
+              <label for="reportFilterToken">Filter by token (optional)</label>
+              <input id="reportFilterToken" type="text" placeholder="0x…" />
+            </div>
+            <div class="field">
+              <label for="reportFilterType">Filter by event type</label>
+              <select id="reportFilterType">
+                <option value="">All events</option>
+                <option value="LockCreated">LockCreated</option>
+                <option value="LockToppedUp">LockToppedUp</option>
+                <option value="FeeCharged">FeeCharged</option>
+                <option value="Claimed">Claimed</option>
+                <option value="LockCancelled">LockCancelled</option>
+                <option value="LockParamsUpdated">LockParamsUpdated</option>
+                <option value="SurplusRescued">SurplusRescued</option>
+                <option value="OwnershipTransferred">OwnershipTransferred</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-scroll" style="display:none;margin-top:14px;" id="txTableWrap">
+            <table>
+              <thead>
+                <tr><th>Block</th><th>Time</th><th>Event</th><th>Token</th><th>Details</th><th>Tx</th></tr>
+              </thead>
+              <tbody id="txTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </div>
+
+</div>
+
+<!--
+  SRI pin added (buglist 1.3). VERIFY THIS HASH YOURSELF before deploying —
+  it was not generated from a byte-for-byte fetch of the file in this
+  environment (no network access here). Regenerate and compare with:
+    curl -s https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js | openssl dgst -sha512 -binary | openssl base64 -A
+  If the hash doesn't match what you compute, the browser will refuse to
+  run the script (fails closed) — update the integrity attribute below to
+  whatever you verify, don't just delete it.
+-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"
+        integrity="sha512-FDcVY+g7vc5CXANbrTSg1K5qLyriCsGDYCE02Li1tXEYdNQPvLPHNE+rT2Mjei8N7fZbe0WLhw27j2SrGRpdMg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- WalletConnect v2 (EIP-1193 provider) — lets this page connect via QR
+     (desktop) or a wallet-app picker/deep-link (mobile) for wallets with no
+     browser extension, e.g. Trust Wallet on Android. Project ID and init
+     live in WALLETCONNECT_PROJECT_ID / connectWalletConnectWallet() below —
+     same project ID and library version already in production use on the
+     Goa10x Web3 Shop. -->
+<script src="https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.10.0/dist/index.umd.js" integrity="sha256-rM0h9J2B4+s6RJelZKsSCiprdJi3Ret46ZwVj4YNRW8=" crossorigin="anonymous"></script>
+<script>
+// ------------------------------------------------------------------
+// Config
+// ------------------------------------------------------------------
+const POLYGON_CHAIN_ID = 137;
+const POLYGON_CHAIN_ID_HEX = '0x89';
+const EXPLORER_TX = 'https://polygonscan.com/tx/';
+const EXPLORER_ADDR = 'https://polygonscan.com/address/';
+
+// ------------------------------------------------------------------
+// Common Polygon PoS tokens (for the dropdown next to token address
+// fields). Addresses are well-known mainnet contracts, included as a
+// convenience shortcut only — always let a user override with a pasted
+// address, and never trust a symbol shown by an arbitrary token contract
+// itself (see _requireContract note: only presence of code is checked,
+// not legitimacy). Double-check any address against PolygonScan before
+// relying on it for a real deposit.
+const COMMON_TOKENS = [
+  { symbol: 'USDT',  name: 'Tether USD',              address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F' },
+  { symbol: 'USDC',  name: 'USD Coin (native)',        address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359' },
+  { symbol: 'USDC.e',name: 'USD Coin (bridged)',       address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' },
+  { symbol: 'DAI',   name: 'Dai Stablecoin',           address: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063' },
+  { symbol: 'WETH',  name: 'Wrapped Ether',            address: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619' },
+  { symbol: 'WBTC',  name: 'Wrapped Bitcoin',          address: '0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6' },
+  { symbol: 'WMATIC',name: 'Wrapped MATIC / POL',      address: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270' },
+];
+
+function initTokenPickers(){
+  document.querySelectorAll('select.token-picker').forEach(sel => {
+    const targetId = sel.dataset.target;
+    const target = document.getElementById(targetId);
+    if (!target) return;
+    sel.innerHTML = '<option value="">— choose a common token —</option>' +
+      COMMON_TOKENS.map(t => `<option value="${t.address}">${t.symbol} — ${t.name}</option>`).join('') +
+      '<option value="__custom__">Custom (paste address below)</option>';
+    sel.addEventListener('change', () => {
+      if (sel.value && sel.value !== '__custom__'){
+        target.value = sel.value;
+      }
+      target.focus();
+    });
+  });
+}
+initTokenPickers();
+
+// ------------------------------------------------------------------
+// Tooltips — tap-to-open on mobile (hover alone isn't reliable on touch),
+// click elsewhere to close. Pure CSS :hover/:focus already covers desktop.
+// ------------------------------------------------------------------
+document.addEventListener('click', (e) => {
+  const tip = e.target.closest('.tip');
+  document.querySelectorAll('.tip.open').forEach(t => { if (t !== tip) t.classList.remove('open'); });
+  if (tip) tip.classList.toggle('open');
+});
+
+// ------------------------------------------------------------------
+// Hero "get started" button — jumps straight to the self-lock form,
+// which is the flow a first-time, non-technical user actually wants
+// (lock their own tokens for themselves). The advanced contract/RPC
+// section and the Admin/Reports tabs stay available but out of the way.
+// ------------------------------------------------------------------
+// If the contract still hasn't loaded after waiting, don't fail silently —
+// open the Advanced section (where the real error lives in #contractStatus)
+// and scroll it into view so the user can actually see what went wrong.
+function revealLoadFailure(){
+  const details = document.querySelector('details.advanced');
+  if (details) details.open = true;
+  const statusEl = document.getElementById('contractStatus');
+  if (statusEl){
+    if (!statusEl.textContent.trim()){
+      setStatus(statusEl, 'Contract still hasn\'t loaded — check your connection and try "Reload contract data" below, or the network badge above.', 'err');
+    }
+    statusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+document.getElementById('heroStartBtn').addEventListener('click', () => {
+  const go = () => {
+    document.querySelector('.tab-btn[data-tab="claim"]').click();
+    const target = document.getElementById('slToken').closest('.subsection');
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  if (document.getElementById('afterLoad').style.display !== 'none') go();
+  else setTimeout(() => {
+    // give the auto page-load contract fetch a moment to finish
+    if (document.getElementById('afterLoad').style.display !== 'none') go();
+    else revealLoadFailure();
+  }, 600);
+});
+document.getElementById('heroCheckBtn').addEventListener('click', () => {
+  const go = () => {
+    document.querySelector('.tab-btn[data-tab="claim"]').click();
+    document.getElementById('claimAddr').closest('.panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  if (document.getElementById('afterLoad').style.display !== 'none') go();
+  else setTimeout(() => {
+    if (document.getElementById('afterLoad').style.display !== 'none') go();
+    else revealLoadFailure();
+  }, 600);
+});
+
+// Public fallback RPC used for read-only browsing (contract info, registry,
+// reports) when no wallet extension is installed/connected. Without this,
+// pages that only ever did `new Web3Provider(window.ethereum || {})` threw
+// immediately for visitors with no wallet at all — fixed in v5.
+const FALLBACK_RPC = 'https://polygon-rpc.com';
+function getReadProvider(){
+  if (provider) return provider;
+  const custom = document.getElementById('customRpc').value.trim();
+  if (custom) return new ethers.providers.JsonRpcProvider(custom, POLYGON_CHAIN_ID);
+  if (window.ethereum) return new ethers.providers.Web3Provider(window.ethereum, 'any');
+  return new ethers.providers.JsonRpcProvider(FALLBACK_RPC, POLYGON_CHAIN_ID);
+}
+
+const TIMELOCK_ABI = [
+  "function owner() view returns (address)",
+  "function totalLocked(address token) view returns (uint256)",
+  "function contractTokenBalance(address tokenAddress) view returns (uint256)",
+  "function surplusBalance(address tokenAddress) view returns (uint256)",
+  "function feeRecipient() view returns (address)",
+  "function FEE_BPS() view returns (uint256)",
+  "function previewClaim(address beneficiary, address tokenAddress) view returns (uint256 grossPayout, uint256 feeAmount, uint256 netAmount)",
+  "function getLock(address beneficiary, address tokenAddress) view returns (uint256 totalDeposited, uint256 remaining, uint256 claimAmount, uint256 frequency, uint256 startTime, uint256 lastClaimTime, bool active, bool selfLock)",
+  "function isClaimable(address beneficiary, address tokenAddress) view returns (bool)",
+  "function timeUntilNextClaim(address beneficiary, address tokenAddress) view returns (uint256)",
+  "function createLock(address beneficiary, address tokenAddress, uint256 totalAmount, uint256 claimAmount, uint256 frequency, uint256 startTime)",
+  "function createSelfLock(address tokenAddress, uint256 totalAmount, uint256 claimAmount, uint256 frequency, uint256 startTime)",
+  "function topUp(address beneficiary, address tokenAddress, uint256 amount)",
+  "function topUpMyLock(address tokenAddress, uint256 amount)",
+  "function updateLockParams(address beneficiary, address tokenAddress, uint256 newClaimAmount, uint256 newFrequency)",
+  "function cancelLock(address beneficiary, address tokenAddress, address refundTo)",
+  "function rescueSurplus(address tokenAddress, address to)",
+  "function transferOwnership(address newOwner)",
+  "function claim(address tokenAddress)",
+  "event LockCreated(address indexed beneficiary, address indexed token, uint256 totalAmount, uint256 claimAmount, uint256 frequency, uint256 startTime, bool selfLock)",
+  "event LockToppedUp(address indexed beneficiary, address indexed token, uint256 addedAmount, uint256 newRemaining)",
+  "event Claimed(address indexed beneficiary, address indexed token, uint256 amount, uint256 remaining, uint256 timestamp)",
+  "event FeeCharged(address indexed beneficiary, address indexed token, address indexed feeRecipient, uint256 feeAmount)",
+  "event LockCancelled(address indexed beneficiary, address indexed token, uint256 refundedAmount)",
+  "event LockParamsUpdated(address indexed beneficiary, address indexed token, uint256 claimAmount, uint256 frequency)",
+  "event SurplusRescued(address indexed token, address indexed to, uint256 amount)",
+  "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)"
+];
+
+const ERC20_ABI = [
+  "function symbol() view returns (string)",
+  "function decimals() view returns (uint8)",
+  "function balanceOf(address) view returns (uint256)",
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function approve(address spender, uint256 amount) returns (bool)"
+];
+
+const EVENT_NAMES = ['LockCreated','LockToppedUp','Claimed','FeeCharged','LockCancelled','LockParamsUpdated','SurplusRescued','OwnershipTransferred'];
+
+// ------------------------------------------------------------------
+// State
+// ------------------------------------------------------------------
+let provider, signer, connectedAddress;
+let timelock;
+let contractOwner = null;
+let scannedEvents = [];       // { blockNumber, event, args, transactionHash, logIndex, timestamp? }
+let lastScanProvider = null;  // provider used for the most recent scan, reused for timestamp lookups
+// True only once we've actually confirmed the connected wallet's provider is
+// on Polygon Mainnet. The network badge used to be purely cosmetic — nothing
+// stopped a read or a transaction from going through on the wrong chain.
+// This flag is the real gate now; see ensureCorrectNetwork().
+let networkOk = false;
+
+// v7 is multi-token: there's no single "the" ERC20 anymore, so instead of
+// one global {tokenDecimals, tokenSymbol} we cache per-token metadata,
+// keyed by lowercased address, fetched on demand the first time a token
+// address is used anywhere on the page.
+const tokenInfoCache = {}; // lowercase address => { decimals, symbol, contract }
+async function getTokenInfo(tokenAddr){
+  const key = tokenAddr.toLowerCase();
+  if (tokenInfoCache[key]) return tokenInfoCache[key];
+  const readCtx = provider || getReadProvider();
+  const c = new ethers.Contract(tokenAddr, ERC20_ABI, readCtx);
+  let decimals = 18, symbol = 'TOKEN';
+  try{ decimals = await c.decimals(); }catch(e){ /* keep default */ }
+  try{ symbol = await c.symbol(); }catch(e){ /* keep default */ }
+  const info = { decimals, symbol, contract: c };
+  tokenInfoCache[key] = info;
+  return info;
+}
+function tokenContractFor(tokenAddr){
+  const key = tokenAddr.toLowerCase();
+  const base = tokenInfoCache[key] ? tokenInfoCache[key].contract : new ethers.Contract(tokenAddr, ERC20_ABI, provider);
+  return signer ? base.connect(signer) : base;
+}
+
+// Bug 1.7 fix: check-lock is async and previously had no guard against
+// overlapping calls — checking address A then quickly address B could
+// resolve out of order and leave the panel showing A's data under B's
+// input. Every check-lock request is stamped with an incrementing token;
+// a response is only rendered if it's still the most recent request.
+let checkLockSeq = 0;
+
+// ------------------------------------------------------------------
+// Helpers
+// ------------------------------------------------------------------
+// All amount formatting/parsing is now per-token: pass the token's cached
+// info (from getTokenInfo) rather than relying on a single global token.
+function fmtAmount(raw, info){
+  try{ return ethers.utils.formatUnits(raw, info ? info.decimals : 18) + ' ' + (info ? info.symbol : 'TOKEN'); }
+  catch(e){ return raw.toString(); }
+}
+function parseAmount(str, info){
+  return ethers.utils.parseUnits(String(str).trim(), info ? info.decimals : 18);
+}
+// Strict positive-amount / positive-integer parsers used for client-side
+// validation before submitting a transaction, so mistakes surface as a clear
+// inline message instead of a wallet popup followed by an on-chain revert.
+function parsePositiveAmount(str, label, info){
+  let raw;
+  try{ raw = parseAmount(str, info); }
+  catch(e){ throw new Error(`${label}: enter a valid ${info ? info.symbol : 'token'} amount.`); }
+  if (raw.lte(0)) throw new Error(`${label}: amount must be greater than 0.`);
+  return raw;
+}
+function parsePositiveInt(str, label){
+  const n = String(str).trim();
+  if (!/^[0-9]+$/.test(n) || Number(n) <= 0) throw new Error(`${label}: enter a whole number of seconds greater than 0.`);
+  return n;
+}
+// Shared validator for the two block-scan number fields (bugs 1.5/1.6):
+// previously a non-numeric paste silently became NaN and produced an
+// opaque RPC error instead of a clear message. allowZero lets fromBlock
+// default to 0 ("from genesis") while chunk size must stay positive.
+function parseValidatedInt(str, label, { min = 0, allowEmpty = false, emptyValue = 0 } = {}){
+  const s = String(str).trim();
+  if (s === '' && allowEmpty) return emptyValue;
+  if (!/^[0-9]+$/.test(s)) throw new Error(`${label}: enter a whole, non-negative number.`);
+  const n = parseInt(s, 10);
+  if (n < min) throw new Error(`${label}: must be at least ${min}.`);
+  return n;
+}
+function fmtSeconds(s){
+  s = Number(s);
+  if (s % 2592000 === 0 && s > 0) return `${s/2592000*30}d (${s}s)`;
+  if (s % 604800 === 0 && s > 0) return `${s/604800}w (${s}s)`;
+  if (s % 86400 === 0 && s > 0) return `${s/86400}d (${s}s)`;
+  if (s % 3600 === 0 && s > 0) return `${s/3600}h (${s}s)`;
+  return `${s}s`;
+}
+function fmtTimestamp(ts){
+  ts = Number(ts);
+  if (!ts) return '—';
+  return new Date(ts*1000).toLocaleString();
+}
+function fmtCountdown(sec){
+  sec = Number(sec);
+  if (sec === 0) return 'Claimable now';
+  if (sec >= 315360000) return 'Never (lock inactive or exhausted)';
+  const d = Math.floor(sec/86400), h = Math.floor((sec%86400)/3600), m = Math.floor((sec%3600)/60);
+  let out = [];
+  if (d) out.push(d+'d');
+  if (h) out.push(h+'h');
+  if (m || out.length===0) out.push(m+'m');
+  return out.join(' ') + ' remaining';
+}
+function shortAddr(a){ return a ? a.slice(0,6)+'…'+a.slice(-4) : '—'; }
+function setStatus(el, msg, kind){
+  el.textContent = msg || '';
+  el.className = 'status-line' + (kind ? ' '+kind : '');
+}
+function extractRevertReason(err){
+  return err?.error?.data?.message
+    || err?.data?.message
+    || err?.reason
+    || err?.error?.message
+    || err?.message
+    || 'Transaction failed';
+}
+function resolvedFrequency(selectId, customId){
+  const sel = document.getElementById(selectId).value;
+  if (sel === 'custom') return document.getElementById(customId).value.trim();
+  return sel;
+}
+function txLink(hash){ return `<a href="${EXPLORER_TX}${hash}" target="_blank" rel="noopener">${shortAddr(hash)}</a>`; }
+function addrLink(addr){ return `<a href="${EXPLORER_ADDR}${addr}" target="_blank" rel="noopener">${shortAddr(addr)}</a>`; }
+
+// Bug 1.2 fix: destructive actions (cancel lock, rescue surplus, transfer
+// ownership) used to be gated only by native window.confirm(), which some
+// in-app/embedded wallet browsers suppress and which any injected script
+// can monkey-patch to auto-approve. This renders an in-page recap with its
+// own Confirm/Cancel buttons instead, appended right after the given
+// container, and resolves true/false based on which the user clicks.
+function requestConfirmation(afterEl, recapHtml){
+  return new Promise(resolve => {
+    const existing = afterEl.parentElement.querySelector('.confirm-box');
+    if (existing) existing.remove();
+    const box = document.createElement('div');
+    box.className = 'confirm-box';
+    box.innerHTML = `<div class="confirm-recap">${recapHtml}</div>
+      <div class="actions">
+        <button type="button" class="danger confirm-yes">Yes, I've checked this — proceed</button>
+        <button type="button" class="confirm-no">Cancel</button>
+      </div>`;
+    afterEl.insertAdjacentElement('afterend', box);
+    box.querySelector('.confirm-yes').addEventListener('click', () => { box.remove(); resolve(true); });
+    box.querySelector('.confirm-no').addEventListener('click', () => { box.remove(); resolve(false); });
+  });
+}
+
+// ------------------------------------------------------------------
+// Tabs
+// ------------------------------------------------------------------
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ------------------------------------------------------------------
+// Wallet connection
+// ------------------------------------------------------------------
+async function updateNetworkBadge(){
+  const badge = document.getElementById('networkBadge');
+  if (!provider){ badge.textContent = 'Not connected'; badge.className = 'badge'; networkOk = false; return; }
+  const network = await provider.getNetwork();
+  networkOk = (network.chainId === POLYGON_CHAIN_ID);
+  if (networkOk){
+    badge.textContent = 'Polygon Mainnet — ' + shortAddr(connectedAddress);
+    badge.className = 'badge ok';
+  } else {
+    badge.textContent = 'Wrong network (chain ' + network.chainId + ') — switch to Polygon';
+    badge.className = 'badge bad';
+  }
+  refreshOwnerGate();
+}
+
+async function switchToPolygon(){
+  try{
+    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: POLYGON_CHAIN_ID_HEX }] });
+    return true;
+  }catch(err){
+    if (err.code === 4902){
+      try{
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId: POLYGON_CHAIN_ID_HEX,
+            chainName: 'Polygon Mainnet',
+            nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 },
+            rpcUrls: ['https://polygon-rpc.com'],
+            blockExplorerUrls: ['https://polygonscan.com']
+          }]
+        });
+        return true;
+      }catch(addErr){
+        return false;
+      }
+    }
+    // Any other error (e.g. user rejected the switch, code 4001) means we're
+    // still on the wrong chain — report failure instead of silently
+    // continuing, which is what let reads/writes through on the wrong
+    // network before.
+    return false;
+  }
+}
+
+// The real gate. Re-derives the connected provider's actual current chain ID
+// every time (never trusts a previously-cached badge state, since the wallet
+// can change chains at any moment outside our control) and, if a wallet is
+// present, tries once to switch it to Polygon before giving up.
+async function ensureCorrectNetwork(){
+  if (!provider){
+    // No wallet connected at all: reads use the hardcoded-Polygon fallback
+    // RPC (see getReadProvider), which is always correct by construction.
+    networkOk = true;
+    return true;
+  }
+  let network = await provider.getNetwork();
+  if (network.chainId === POLYGON_CHAIN_ID){ networkOk = true; return true; }
+
+  if (window.ethereum){
+    const switched = await switchToPolygon();
+    if (switched){
+      // wallet_switchEthereumChain resolves before the provider's internal
+      // state necessarily reflects it in every wallet, so re-instantiate and
+      // re-check rather than trusting the resolved promise alone.
+      provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
+      signer = provider.getSigner();
+      if (timelock) timelock = timelock.connect(signer);
+      network = await provider.getNetwork();
+    }
+  }
+  networkOk = (network.chainId === POLYGON_CHAIN_ID);
+  await updateNetworkBadge();
+  return networkOk;
+}
+
+// Throws a clear, catchable error for use at the top of every action handler
+// that reads from or writes to the contract, instead of letting a wrong-chain
+// call silently go through or fail with an opaque provider error.
+function requireNetwork(){
+  if (!networkOk) throw new Error('Wrong network — switch your wallet to Polygon Mainnet (chain ID 137) to continue.');
+}
+
+// ------------------------------------------------------------------
+// WalletConnect v2 — for wallets with no browser extension (e.g. Trust
+// Wallet on Android, or any wallet via desktop QR scan). Same project ID
+// and library version already in production use elsewhere (Goa10x Web3
+// Shop) — see WALLETCONNECT_PROJECT_ID below.
+// ------------------------------------------------------------------
+const WALLETCONNECT_PROJECT_ID = "9828bba8e740b87433adfb536771623e";
+let wcEthereumProvider = null; // singleton — re-used across connect attempts
+
+function isWalletConnectProvider(ep){
+  return !!(wcEthereumProvider && ep === wcEthereumProvider);
+}
+
+async function getWalletConnectProvider(){
+  if (wcEthereumProvider) return wcEthereumProvider;
+  const lib = window["@walletconnect/ethereum-provider"];
+  if (!lib || !lib.EthereumProvider){
+    alert('WalletConnect failed to load — check your connection and try again.');
+    return null;
+  }
+  wcEthereumProvider = await lib.EthereumProvider.init({
+    projectId: WALLETCONNECT_PROJECT_ID,
+    optionalChains: [POLYGON_CHAIN_ID],
+    rpcMap: { [POLYGON_CHAIN_ID]: 'https://polygon-rpc.com' },
+    showQrModal: true,
+    metadata: {
+      name: 'PolygonTimeLock Control Panel',
+      description: 'PolygonTimeLock — owner/beneficiary control panel',
+      url: window.location.origin || 'https://polygontimelock',
+      icons: [(window.location.origin || 'https://polygontimelock') + '/favicon.ico'],
+    },
+  });
+  return wcEthereumProvider;
+}
+
+// Shared by both connect buttons: once we have an EIP-1193 provider `ep`
+// and it's returned an account, wire up the app's usual provider/signer
+// state and network check the same way regardless of which path got us
+// there (injected extension or WalletConnect relay).
+async function finishConnect(ep){
+  provider = new ethers.providers.Web3Provider(ep, 'any');
+  signer = provider.getSigner();
+  connectedAddress = await signer.getAddress();
+
+  const ok = await ensureCorrectNetwork(); // attempts a chain switch if needed
+  if (timelock) {
+    timelock = timelock.connect(signer);
+  } else {
+    // The automatic page-load fetch (over the public fallback RPC, since no
+    // wallet was connected yet at that point) may have failed — e.g. slow
+    // mobile network, rate limiting, or a flaky public node. Nothing ever
+    // retried it before, so a user could be stuck on a broken page forever
+    // even after successfully connecting a wallet. Retry now using the
+    // wallet's own RPC connection, which is usually far more reliable.
+    await loadContract();
+  }
+
+  document.getElementById('connectBtn').textContent = 'Connected';
+  document.getElementById('connectWcBtn').textContent = isWalletConnectProvider(ep) ? 'Connected' : 'WalletConnect';
+  await updateNetworkBadge();
+
+  ep.on && ep.on('accountsChanged', () => window.location.reload());
+  ep.on && ep.on('chainChanged', () => window.location.reload());
+  ep.on && ep.on('disconnect', () => window.location.reload());
+
+  if (!ok){
+    alert('Your wallet is still on the wrong network. Switch to Polygon Mainnet (chain ID 137) — every action here is disabled until you do.');
+  }
+
+  refreshOwnerGate();
+}
+
+document.getElementById('connectBtn').addEventListener('click', async () => {
+  if (!window.ethereum){
+    alert('No browser wallet extension found. Install MetaMask, or use the WalletConnect button instead to connect a mobile wallet.');
+    return;
+  }
+  await window.ethereum.request({ method: 'eth_requestAccounts' });
+  await finishConnect(window.ethereum);
+});
+
+document.getElementById('connectWcBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('connectWcBtn');
+  btn.disabled = true;
+  btn.textContent = 'Connecting…';
+  try{
+    const ep = await getWalletConnectProvider();
+    if (!ep) return;
+    await ep.enable(); // opens the QR modal / wallet-app picker
+    await finishConnect(ep);
+  }catch(err){
+    console.error(err);
+    if (err && (err.code === 4001 || (err.message || '').toLowerCase().includes('user rejected'))){
+      // cancelled — no alert needed
+    } else {
+      alert('WalletConnect connection failed: ' + ((err && err.message) || 'unknown error').slice(0, 120));
+    }
+  }finally{
+    btn.disabled = false;
+    if (btn.textContent === 'Connecting…') btn.textContent = 'WalletConnect';
+  }
+});
+
+// ------------------------------------------------------------------
+// Load contract
+// ------------------------------------------------------------------
+async function loadContract(){
+  const statusEl = document.getElementById('contractStatus');
+  const addr = document.getElementById('contractAddr').value.trim();
+  if (!ethers.utils.isAddress(addr)){
+    setStatus(statusEl, 'Enter a valid contract address.', 'err');
+    return;
+  }
+  if (!provider){
+    provider = getReadProvider();
+    if (!window.ethereum) setStatus(statusEl, 'No wallet detected — loading read-only via public RPC. Connect a wallet to claim or use admin actions.');
+  }
+  const netOk = await ensureCorrectNetwork();
+  if (!netOk){
+    setStatus(statusEl, 'Wrong network — switch your wallet to Polygon Mainnet (chain ID 137) before loading the contract.', 'err');
+    return;
+  }
+  try{
+    setStatus(statusEl, 'Loading…');
+    const readContract = new ethers.Contract(addr, TIMELOCK_ABI, provider);
+    contractOwner = await readContract.owner();
+
+    // v7 has no single `token()` getter — the contract holds locks in any
+    // number of tokens, so there's nothing single-token to display here
+    // beyond owner/fee. Use the "Look up a token" panel for per-token figures.
+    timelock = signer ? readContract.connect(signer) : readContract;
+
+    document.getElementById('infoOwner').textContent = shortAddr(contractOwner);
+
+    try{
+      const feeRecipient = await readContract.feeRecipient();
+      const feeBps = await readContract.FEE_BPS();
+      const feePct = (feeBps.toNumber ? feeBps.toNumber() : Number(feeBps)) / 100;
+      document.getElementById('infoFee').textContent = feePct + '% → ' + shortAddr(feeRecipient);
+      document.getElementById('feeNoticeAddr').textContent = feeRecipient;
+      document.getElementById('topFeeNoticeAddr').textContent = feeRecipient;
+    }catch(e){
+      document.getElementById('infoFee').textContent = 'unavailable';
+    }
+
+    document.getElementById('contractInfo').style.display = 'block';
+    document.getElementById('afterLoad').style.display = 'block';
+
+    const deployBlockVal = document.getElementById('deployBlock').value.trim();
+    if (deployBlockVal) document.getElementById('scanFrom').value = deployBlockVal;
+
+    setStatus(statusEl, 'Contract loaded.', 'ok');
+    refreshOwnerGate();
+  }catch(err){
+    console.error(err);
+    setStatus(statusEl, 'Could not load contract: ' + extractRevertReason(err), 'err');
+  }
+}
+
+document.getElementById('loadContractBtn').addEventListener('click', loadContract);
+
+// The contract address is fixed and pre-filled above, so load it automatically
+// on page open — no need to make the user click "Load contract" themselves.
+loadContract();
+
+document.getElementById('tokLookupBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('tokLookupStatus');
+  const tokenAddr = document.getElementById('tokLookupAddr').value.trim();
+  if (!ethers.utils.isAddress(tokenAddr)){ setStatus(statusEl, 'Enter a valid token address.', 'err'); return; }
+  try{
+    setStatus(statusEl, 'Checking…');
+    const info = await getTokenInfo(tokenAddr);
+    const readCtx = provider || getReadProvider();
+    const readContract = new ethers.Contract(timelock.address, TIMELOCK_ABI, readCtx);
+    document.getElementById('tlSymbol').textContent = `${info.symbol} (${info.decimals}d)`;
+    document.getElementById('tlBalance').textContent = fmtAmount(await readContract.contractTokenBalance(tokenAddr), info);
+    document.getElementById('tlLocked').textContent = fmtAmount(await readContract.totalLocked(tokenAddr), info);
+    document.getElementById('tlSurplus').textContent = fmtAmount(await readContract.surplusBalance(tokenAddr), info);
+    document.getElementById('tokLookupInfo').style.display = 'block';
+    setStatus(statusEl, '', null);
+  }catch(err){ console.error(err); setStatus(statusEl, extractRevertReason(err), 'err'); }
+});
+
+function refreshOwnerGate(){
+  const gate = document.getElementById('ownerGate');
+  const isOwner = connectedAddress && contractOwner && connectedAddress.toLowerCase() === contractOwner.toLowerCase();
+  const canAct = isOwner && networkOk;
+  const adminButtons = ['clApproveBtn','clCreateBtn','tuApproveBtn','tuTopUpBtn','upBtn','ccBtn','rsBtn','toBtn'];
+  if (isOwner && !networkOk){
+    gate.style.display = 'block';
+    gate.textContent = 'Wrong network — switch your wallet to Polygon Mainnet (chain ID 137) to enable these actions.';
+  } else if (isOwner){
+    gate.style.display = 'none';
+  } else if (contractOwner){
+    gate.style.display = 'block';
+    gate.textContent = connectedAddress
+      ? `Connected wallet (${shortAddr(connectedAddress)}) is not the owner (${shortAddr(contractOwner)}).`
+      : 'Connect the owner wallet to enable these actions.';
+  }
+  adminButtons.forEach(id => {
+    const btn = document.getElementById(id);
+    // approve buttons stay independently gated below; skip re-enabling create/topup here
+    if (id === 'clCreateBtn' || id === 'tuTopUpBtn') return;
+    btn.disabled = !canAct;
+  });
+}
+
+// custom frequency toggles
+document.getElementById('clFrequency').addEventListener('change', e => {
+  document.getElementById('clFrequencyCustomWrap').style.display = e.target.value === 'custom' ? 'block' : 'none';
+});
+document.getElementById('upFrequency').addEventListener('change', e => {
+  document.getElementById('upFrequencyCustomWrap').style.display = e.target.value === 'custom' ? 'block' : 'none';
+});
+
+// ------------------------------------------------------------------
+// Claim panel
+// ------------------------------------------------------------------
+let lastCheckedBeneficiary = null;
+
+let lastCheckedToken = null;
+
+document.getElementById('checkLockBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('claimStatus');
+  let addr = document.getElementById('claimAddr').value.trim();
+  const tokenAddr = document.getElementById('claimToken').value.trim();
+  if (!addr){
+    if (!connectedAddress){ setStatus(statusEl, 'Connect a wallet or enter an address.', 'err'); return; }
+    addr = connectedAddress;
+    document.getElementById('claimAddr').value = addr;
+  }
+  if (!ethers.utils.isAddress(addr)){ setStatus(statusEl, 'Enter a valid beneficiary address.', 'err'); return; }
+  if (!ethers.utils.isAddress(tokenAddr)){ setStatus(statusEl, 'Enter a valid token address.', 'err'); return; }
+
+  // Bug 1.7 fix: stamp this request; if a newer check-lock click resolves
+  // first, an older/slower in-flight response is dropped instead of
+  // overwriting the panel with stale data.
+  const mySeq = ++checkLockSeq;
+
+  try{
+    requireNetwork();
+    setStatus(statusEl, 'Checking…');
+    const info = await getTokenInfo(tokenAddr);
+    const lock = await timelock.getLock(addr, tokenAddr);
+    const claimable = await timelock.isClaimable(addr, tokenAddr);
+    const nextIn = await timelock.timeUntilNextClaim(addr, tokenAddr);
+    let preview;
+    try{ preview = await timelock.previewClaim(addr, tokenAddr); }catch(e){ preview = null; }
+
+    if (mySeq !== checkLockSeq) return; // a newer request has since started; discard this one
+
+    document.getElementById('cTotal').textContent = fmtAmount(lock.totalDeposited, info);
+    document.getElementById('cRemaining').textContent = fmtAmount(lock.remaining, info);
+    document.getElementById('cClaimAmount').textContent = fmtAmount(lock.claimAmount, info);
+    document.getElementById('cSelfLockBadge').style.display = lock.selfLock ? 'block' : 'none';
+    document.getElementById('cFrequency').textContent = fmtSeconds(lock.frequency);
+    document.getElementById('cStart').textContent = fmtTimestamp(lock.startTime);
+    document.getElementById('cLastClaim').textContent = fmtTimestamp(lock.lastClaimTime);
+    document.getElementById('cNext').textContent = claimable ? 'Claimable now' : fmtCountdown(nextIn);
+
+    const totalNum = Number(ethers.utils.formatUnits(lock.totalDeposited, info.decimals));
+    const remainingNum = Number(ethers.utils.formatUnits(lock.remaining, info.decimals));
+    const claimedPct = totalNum > 0 ? Math.max(0, Math.min(100, ((totalNum - remainingNum) / totalNum) * 100)) : 0;
+    document.getElementById('cProgressFill').style.width = claimedPct.toFixed(1) + '%';
+
+    document.getElementById('cNet').textContent = preview ? fmtAmount(preview.netAmount, info) : '—';
+    document.getElementById('claimInfo').style.display = 'block';
+
+    lastCheckedBeneficiary = addr;
+    lastCheckedToken = tokenAddr;
+    const isSelf = connectedAddress && connectedAddress.toLowerCase() === addr.toLowerCase();
+    document.getElementById('claimBtn').disabled = !(isSelf && claimable && lock.active);
+
+    if (!lock.active) setStatus(statusEl, 'No active lock for this address in this token.', 'err');
+    else setStatus(statusEl, '', null);
+  }catch(err){
+    if (mySeq !== checkLockSeq) return;
+    console.error(err);
+    setStatus(statusEl, extractRevertReason(err), 'err');
+  }
+});
+
+document.getElementById('claimBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('claimTxStatus');
+  try{
+    requireNetwork();
+    if (!lastCheckedToken) throw new Error('Check a lock first.');
+    setStatus(statusEl, 'Confirm in wallet…');
+    const tx = await timelock.claim(lastCheckedToken);
+    setStatus(statusEl, 'Submitted: ' + tx.hash);
+    await tx.wait();
+    setStatus(statusEl, 'Claimed. Tx: ' + tx.hash, 'ok');
+    document.getElementById('checkLockBtn').click();
+  }catch(err){
+    console.error(err);
+    setStatus(statusEl, extractRevertReason(err), 'err');
+  }
+});
+
+// ------------------------------------------------------------------
+// Shared approve helper — used by both owner (Admin tab) and self-service
+// (self-lock) flows below.
+// ------------------------------------------------------------------
+async function ensureApproval(tokenAddr, amountRaw, approveBtn, actionBtn, statusEl){
+  const tok = tokenContractFor(tokenAddr);
+  const spender = timelock.address;
+  const allowance = await tok.allowance(connectedAddress, spender);
+  if (allowance.gte(amountRaw)){
+    actionBtn.disabled = false;
+    setStatus(statusEl, 'Already approved.', 'ok');
+    return;
+  }
+  setStatus(statusEl, 'Confirm approval in wallet…');
+  const tx = await tok.approve(spender, amountRaw);
+  setStatus(statusEl, 'Approving: ' + tx.hash);
+  await tx.wait();
+  actionBtn.disabled = false;
+  setStatus(statusEl, 'Approved. You can now confirm the next step.', 'ok');
+}
+
+// ------------------------------------------------------------------
+// Admin: create lock
+// ------------------------------------------------------------------
+document.getElementById('clApproveBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('clStatus');
+  try{
+    requireNetwork();
+    const tokenAddr = document.getElementById('clToken').value.trim();
+    if (!ethers.utils.isAddress(tokenAddr)) throw new Error('Enter a valid token address.');
+    const info = await getTokenInfo(tokenAddr);
+    const totalRaw = parsePositiveAmount(document.getElementById('clTotal').value, 'Total amount', info);
+    await ensureApproval(tokenAddr, totalRaw, document.getElementById('clApproveBtn'), document.getElementById('clCreateBtn'), statusEl);
+  }catch(err){ console.error(err); setStatus(statusEl, extractRevertReason(err), 'err'); }
+});
+
+document.getElementById('clCreateBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('clStatus');
+  try{
+    requireNetwork();
+    const beneficiary = document.getElementById('clBeneficiary').value.trim();
+    const tokenAddr = document.getElementById('clToken').value.trim();
+    if (!ethers.utils.isAddress(beneficiary)) throw new Error('Enter a valid beneficiary address.');
+    if (!ethers.utils.isAddress(tokenAddr)) throw new Error('Enter a valid token address.');
+    const info = await getTokenInfo(tokenAddr);
+    const totalRaw = parsePositiveAmount(document.getElementById('clTotal').value, 'Total amount', info);
+    const claimRaw = parsePositiveAmount(document.getElementById('clClaim').value, 'Amount per claim', info);
+    const frequency = parsePositiveInt(resolvedFrequency('clFrequency','clFrequencyCustom'), 'Frequency');
+    const startVal = document.getElementById('clStart').value;
+    const startTs = startVal ? Math.floor(new Date(startVal).getTime()/1000) : 0;
+
+    if (claimRaw.gt(totalRaw)) throw new Error('Amount per claim cannot exceed the total amount.');
+
+    // The amount typed here may have changed since "1. Approve" was clicked
+    // (or the page may have been left idle long enough for a prior approval
+    // to have been spent elsewhere). Re-check allowance right before sending
+    // instead of trusting the button's enabled/disabled state, so a stale
+    // approval fails fast with a clear message rather than an on-chain
+    // revert after the user has already confirmed in their wallet.
+    const allowance = await tokenContractFor(tokenAddr).allowance(connectedAddress, timelock.address);
+    if (allowance.lt(totalRaw)) throw new Error(`Approved allowance is less than the total amount — click "1. Approve ${info.symbol}" again for the current amount.`);
+
+    // v9 self-lock rule: if beneficiary === the contract's on-chain owner,
+    // this lock becomes permanently uncancellable/unmodifiable the moment
+    // it's created — trustlessly, for any future owner too. Warn clearly
+    // before sending, since there's no undo.
+    if (contractOwner && beneficiary.toLowerCase() === contractOwner.toLowerCase()){
+      const ok = await requestConfirmation(document.getElementById('clCreateBtn').parentElement, `This beneficiary is the contract owner's own address — this will create a permanent, trustless <span class="mono">self-lock</span>. Once created, <strong>no one</strong> (including you or any future owner) will ever be able to cancel it or change its schedule. Funds can only leave via your own <span class="mono">claim()</span> calls, on the schedule you're about to set. Continue?`);
+      if (!ok){ setStatus(statusEl, 'Cancelled — no action taken.', null); return; }
+    }
+
+    setStatus(statusEl, 'Confirm in wallet…');
+    const tx = await timelock.createLock(beneficiary, tokenAddr, totalRaw, claimRaw, frequency, startTs);
+    setStatus(statusEl, 'Submitted: ' + tx.hash);
+    await tx.wait();
+    setStatus(statusEl, 'Lock created. Tx: ' + tx.hash, 'ok');
+    document.getElementById('clCreateBtn').disabled = true;
+  }catch(err){ console.error(err); setStatus(statusEl, extractRevertReason(err), 'err'); }
+});
+
+// ------------------------------------------------------------------
+// Admin: top up
+// ------------------------------------------------------------------
+document.getElementById('tuApproveBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('tuStatus');
+  try{
+    requireNetwork();
+    const tokenAddr = document.getElementById('tuToken').value.trim();
+    if (!ethers.utils.isAddress(tokenAddr)) throw new Error('Enter a valid token address.');
+    const info = await getTokenInfo(tokenAddr);
+    const amtRaw = parsePositiveAmount(document.getElementById('tuAmount').value, 'Amount', info);
+    await ensureApproval(tokenAddr, amtRaw, document.getElementById('tuApproveBtn'), document.getElementById('tuTopUpBtn'), statusEl);
+  }catch(err){ console.error(err); setStatus(statusEl, extractRevertReason(err), 'err'); }
+});
+
+document.getElementById('tuTopUpBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('tuStatus');
+  try{
+    requireNetwork();
+    const beneficiary = document.getElementById('tuBeneficiary').value.trim();
+    const tokenAddr = document.getElementById('tuToken').value.trim();
+    if (!ethers.utils.isAddress(beneficiary)) throw new Error('Enter a valid beneficiary address.');
+    if (!ethers.utils.isAddress(tokenAddr)) throw new Error('Enter a valid token address.');
+    const info = await getTokenInfo(tokenAddr);
+    const amtRaw = parsePositiveAmount(document.getElementById('tuAmount').value, 'Amount', info);
+
+    // Same stale-allowance guard as Create lock.
+    const allowance = await tokenContractFor(tokenAddr).allowance(connectedAddress, timelock.address);
+    if (allowance.lt(amtRaw)) throw new Error(`Approved allowance is less than this amount — click "1. Approve ${info.symbol}" again for the current amount.`);
+
+    setStatus(statusEl, 'Confirm in wallet…');
+    const tx = await timelock.topUp(beneficiary, tokenAddr, amtRaw);
+    setStatus(statusEl, 'Submitted: ' + tx.hash);
+    await tx.wait();
+    setStatus(statusEl, 'Topped up. Tx: ' + tx.hash, 'ok');
+    document.getElementById('tuTopUpBtn').disabled = true;
+  }catch(err){ console.error(err); setStatus(statusEl, extractRevertReason(err), 'err'); }
+});
+
+// ------------------------------------------------------------------
+// Self-service: create self-lock — trustless, no owner involved at all.
+// msg.sender is both depositor and beneficiary, so the contract makes
+// this permanent by construction (see createSelfLock in the contract).
+// ------------------------------------------------------------------
+document.getElementById('slFrequency').addEventListener('change', e => {
+  document.getElementById('slFrequencyCustomWrap').style.display = e.target.value === 'custom' ? 'block' : 'none';
+});
+
+document.getElementById('slApproveBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('slStatus');
+  try{
+    requireNetwork();
+    const tokenAddr = document.getElementById('slToken').value.trim();
+    if (!ethers.utils.isAddress(tokenAddr)) throw new Error('Enter a valid token address.');
+    const info = await getTokenInfo(tokenAddr);
+    const totalRaw = parsePositiveAmount(document.getElementById('slTotal').value, 'Total amount', info);
+    await ensureApproval(tokenAddr, totalRaw, document.getElementById('slApproveBtn'), document.getElementById('slCreateBtn'), statusEl);
+  }catch(err){ console.error(err); setStatus(statusEl, extractRevertReason(err), 'err'); }
+});
+
+document.getElementById('slCreateBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('slStatus');
+  try{
+    requireNetwork();
+    if (!connectedAddress) throw new Error('Connect your wallet first.');
+    const tokenAddr = document.getElementById('slToken').value.trim();
+    if (!ethers.utils.isAddress(tokenAddr)) throw new Error('Enter a valid token address.');
+    const info = await getTokenInfo(tokenAddr);
+    const totalRaw = parsePositiveAmount(document.getElementById('slTotal').value, 'Total amount', info);
+    const claimRaw = parsePositiveAmount(document.getElementById('slClaim').value, 'Amount per claim', info);
+    const frequency = parsePositiveInt(resolvedFrequency('slFrequency','slFrequencyCustom'), 'Frequency');
+    const startVal = document.getElementById('slStart').value;
+    const startTs = startVal ? Math.floor(new Date(startVal).getTime()/1000) : 0;
+
+    if (claimRaw.gt(totalRaw)) throw new Error('Amount per claim cannot exceed the total amount.');
+
+    // Re-check allowance right before sending — same stale-approval guard
+    // used for the owner's Create Lock flow.
+    const allowance = await tokenContractFor(tokenAddr).allowance(connectedAddress, timelock.address);
+    if (allowance.lt(totalRaw)) throw new Error(`Approved allowance is less than the total amount — click "1. Approve ${info.symbol}" again for the current amount.`);
+
+    const ok = await requestConfirmation(document.getElementById('slCreateBtn').parentElement, `This locks <span class="mono">${fmtAmount(totalRaw, info)}</span> from your own wallet into a <strong>permanent, trustless self-lock</strong>. Once this confirms, <strong>no one</strong> — not you, not the contract owner, not any future owner — will ever be able to cancel it or change its schedule. These funds can only ever leave via your own <span class="mono">claim()</span> calls, on the exact schedule you're about to set. This cannot be undone. Continue?`);
+    if (!ok){ setStatus(statusEl, 'Cancelled — no action taken.', null); return; }
+
+    setStatus(statusEl, 'Confirm in wallet…');
+    const tx = await timelock.createSelfLock(tokenAddr, totalRaw, claimRaw, frequency, startTs);
+    setStatus(statusEl, 'Submitted: ' + tx.hash);
+    await tx.wait();
+    setStatus(statusEl, 'Self-lock created — trustless and permanent. Tx: ' + tx.hash, 'ok');
+    document.getElementById('slCreateBtn').disabled = true;
+  }catch(err){ console.error(err); setStatus(statusEl, extractRevertReason(err), 'err'); }
+});
+
+// ------------------------------------------------------------------
+// Self-service: top up my own lock — no owner involved, works whether
+// the lock was created via createSelfLock or set up by the owner.
+// ------------------------------------------------------------------
+document.getElementById('tmApproveBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('tmStatus');
+  try{
+    requireNetwork();
+    const tokenAddr = document.getElementById('tmToken').value.trim();
+    if (!ethers.utils.isAddress(tokenAddr)) throw new Error('Enter a valid token address.');
+    const info = await getTokenInfo(tokenAddr);
+    const amtRaw = parsePositiveAmount(document.getElementById('tmAmount').value, 'Amount', info);
+    await ensureApproval(tokenAddr, amtRaw, document.getElementById('tmApproveBtn'), document.getElementById('tmTopUpBtn'), statusEl);
+  }catch(err){ console.error(err); setStatus(statusEl, extractRevertReason(err), 'err'); }
+});
+
+document.getElementById('tmTopUpBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('tmStatus');
+  try{
+    requireNetwork();
+    if (!connectedAddress) throw new Error('Connect your wallet first.');
+    const tokenAddr = document.getElementById('tmToken').value.trim();
+    if (!ethers.utils.isAddress(tokenAddr)) throw new Error('Enter a valid token address.');
+    const info = await getTokenInfo(tokenAddr);
+    const amtRaw = parsePositiveAmount(document.getElementById('tmAmount').value, 'Amount', info);
+
+    const allowance = await tokenContractFor(tokenAddr).allowance(connectedAddress, timelock.address);
+    if (allowance.lt(amtRaw)) throw new Error(`Approved allowance is less than this amount — click "1. Approve ${info.symbol}" again for the current amount.`);
+
+    setStatus(statusEl, 'Confirm in wallet…');
+    const tx = await timelock.topUpMyLock(tokenAddr, amtRaw);
+    setStatus(statusEl, 'Submitted: ' + tx.hash);
+    await tx.wait();
+    setStatus(statusEl, 'Topped up. Tx: ' + tx.hash, 'ok');
+    document.getElementById('tmTopUpBtn').disabled = true;
+  }catch(err){ console.error(err); setStatus(statusEl, extractRevertReason(err), 'err'); }
+});
+
+
+
+// ------------------------------------------------------------------
+// Admin: update params
+// ------------------------------------------------------------------
+document.getElementById('upBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('upStatus');
+  try{
+    requireNetwork();
+    const beneficiary = document.getElementById('upBeneficiary').value.trim();
+    const tokenAddr = document.getElementById('upToken').value.trim();
+    if (!ethers.utils.isAddress(beneficiary)) throw new Error('Enter a valid beneficiary address.');
+    if (!ethers.utils.isAddress(tokenAddr)) throw new Error('Enter a valid token address.');
+    const info = await getTokenInfo(tokenAddr);
+    const claimRaw = parsePositiveAmount(document.getElementById('upClaim').value, 'Amount per claim', info);
+    const frequency = parsePositiveInt(resolvedFrequency('upFrequency','upFrequencyCustom'), 'Frequency');
+
+    setStatus(statusEl, 'Confirm in wallet…');
+    const tx = await timelock.updateLockParams(beneficiary, tokenAddr, claimRaw, frequency);
+    setStatus(statusEl, 'Submitted: ' + tx.hash);
+    await tx.wait();
+    setStatus(statusEl, 'Updated. Tx: ' + tx.hash, 'ok');
+  }catch(err){ console.error(err); setStatus(statusEl, extractRevertReason(err), 'err'); }
+});
+
+// ------------------------------------------------------------------
+// Admin: cancel lock
+// ------------------------------------------------------------------
+document.getElementById('ccBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('ccStatus');
+  try{
+    requireNetwork();
+    const beneficiary = document.getElementById('ccBeneficiary').value.trim();
+    const tokenAddr = document.getElementById('ccToken').value.trim();
+    const refundTo = document.getElementById('ccRefundTo').value.trim();
+    if (!ethers.utils.isAddress(beneficiary) || !ethers.utils.isAddress(tokenAddr) || !ethers.utils.isAddress(refundTo)) throw new Error('Enter valid addresses.');
+
+    const info = await getTokenInfo(tokenAddr);
+    const ok = await requestConfirmation(document.getElementById('ccBtn').parentElement, `Cancel the lock for <span class="mono">${beneficiary}</span> in token <span class="mono">${info.symbol} (${shortAddr(tokenAddr)})</span> and send the entire remaining balance to <span class="mono">${refundTo}</span>? This cannot be undone.`);
+    if (!ok){ setStatus(statusEl, 'Cancelled — no action taken.', null); return; }
+
+    setStatus(statusEl, 'Confirm in wallet…');
+    const tx = await timelock.cancelLock(beneficiary, tokenAddr, refundTo);
+    setStatus(statusEl, 'Submitted: ' + tx.hash);
+    await tx.wait();
+    setStatus(statusEl, 'Cancelled and refunded. Tx: ' + tx.hash, 'ok');
+  }catch(err){ console.error(err); setStatus(statusEl, extractRevertReason(err), 'err'); }
+});
+
+// ------------------------------------------------------------------
+// Admin: rescue surplus (also covers the old "rescue other token" case —
+// see the merged §Rescue-surplus note in the markup above)
+// ------------------------------------------------------------------
+document.getElementById('rsBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('rsStatus');
+  try{
+    requireNetwork();
+    const tokenAddr = document.getElementById('rsToken').value.trim();
+    const to = document.getElementById('rsTo').value.trim();
+    if (!ethers.utils.isAddress(tokenAddr) || !ethers.utils.isAddress(to)) throw new Error('Enter valid addresses.');
+
+    const info = await getTokenInfo(tokenAddr);
+    const ok = await requestConfirmation(document.getElementById('rsBtn').parentElement, `Sweep the surplus balance of <span class="mono">${info.symbol} (${shortAddr(tokenAddr)})</span> to <span class="mono">${to}</span>? Double-check both addresses — this cannot be undone.`);
+    if (!ok){ setStatus(statusEl, 'Cancelled — no action taken.', null); return; }
+
+    setStatus(statusEl, 'Confirm in wallet…');
+    const tx = await timelock.rescueSurplus(tokenAddr, to);
+    setStatus(statusEl, 'Submitted: ' + tx.hash);
+    await tx.wait();
+    setStatus(statusEl, 'Surplus rescued. Tx: ' + tx.hash, 'ok');
+  }catch(err){ console.error(err); setStatus(statusEl, extractRevertReason(err), 'err'); }
+});
+
+// ------------------------------------------------------------------
+// Admin: transfer ownership
+// ------------------------------------------------------------------
+document.getElementById('toBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('toStatus');
+  try{
+    requireNetwork();
+    const newOwner = document.getElementById('toNewOwner').value.trim();
+    if (!ethers.utils.isAddress(newOwner)) throw new Error('Enter a valid address.');
+
+    const ok = await requestConfirmation(document.getElementById('toBtn').parentElement, `Transfer control of the ENTIRE contract (every token, every lock) to <span class="mono">${newOwner}</span>? You will lose admin access immediately. This cannot be undone.`);
+    if (!ok){ setStatus(statusEl, 'Cancelled — no action taken.', null); return; }
+
+    setStatus(statusEl, 'Confirm in wallet…');
+    const tx = await timelock.transferOwnership(newOwner);
+    setStatus(statusEl, 'Submitted: ' + tx.hash);
+    await tx.wait();
+    setStatus(statusEl, 'Ownership transferred. Tx: ' + tx.hash, 'ok');
+    contractOwner = newOwner;
+    refreshOwnerGate();
+  }catch(err){ console.error(err); setStatus(statusEl, extractRevertReason(err), 'err'); }
+});
+
+// ------------------------------------------------------------------
+// Reports: describe / tag events
+// ------------------------------------------------------------------
+// Every event except OwnershipTransferred now carries an indexed `token`
+// field (v7). describeEvent looks up that token's cached decimals/symbol
+// (prefetched in the scan handler below) to format amounts correctly per
+// token instead of assuming one global decimals value.
+function infoForEvent(ev){
+  const t = ev.args.token;
+  if (!t) return null;
+  return tokenInfoCache[t.toLowerCase()] || null;
+}
+function describeEvent(ev){
+  const a = ev.args;
+  const info = infoForEvent(ev);
+  switch(ev.event){
+    case 'LockCreated':
+      return `beneficiary ${addrLink(a.beneficiary)}${a.selfLock ? ' 🔒<strong>trustless self-lock</strong>' : ''} · net locked ${fmtAmount(a.totalAmount, info)} · per-claim ${fmtAmount(a.claimAmount, info)} · every ${fmtSeconds(a.frequency)}`;
+    case 'LockToppedUp':
+      return `beneficiary ${addrLink(a.beneficiary)} · +${fmtAmount(a.addedAmount, info)} net · new remaining ${fmtAmount(a.newRemaining, info)}`;
+    case 'FeeCharged':
+      return `beneficiary ${addrLink(a.beneficiary)} · fee ${fmtAmount(a.feeAmount, info)} → ${addrLink(a.feeRecipient)}`;
+    case 'Claimed':
+      return `beneficiary ${addrLink(a.beneficiary)} · paid ${fmtAmount(a.amount, info)} (no fee) · remaining ${fmtAmount(a.remaining, info)}`;
+    case 'LockCancelled':
+      return `beneficiary ${addrLink(a.beneficiary)} · refunded ${fmtAmount(a.refundedAmount, info)}`;
+    case 'LockParamsUpdated':
+      return `beneficiary ${addrLink(a.beneficiary)} · new per-claim ${fmtAmount(a.claimAmount, info)} · every ${fmtSeconds(a.frequency)}`;
+    case 'SurplusRescued':
+      return `to ${addrLink(a.to)} · ${fmtAmount(a.amount, info)}`;
+    case 'OwnershipTransferred':
+      return `${addrLink(a.previousOwner)} → ${addrLink(a.newOwner)}`;
+    default:
+      return '—';
+  }
+}
+
+function eventTag(ev){
+  if (ev.event === 'LockCreated' || ev.event === 'LockToppedUp') return '<span class="tag in">funds in</span>';
+  if (ev.event === 'Claimed' || ev.event === 'LockCancelled') return '<span class="tag out">funds out</span>';
+  if (ev.event === 'FeeCharged') return '<span class="tag fee">fee</span>';
+  if (ev.event === 'SurplusRescued') return '<span class="tag admin">rescue</span>';
+  if (ev.event === 'OwnershipTransferred') return '<span class="tag admin">ownership</span>';
+  return '';
+}
+
+function eventAddress(ev){
+  const a = ev.args;
+  return (a.beneficiary || a.to || a.previousOwner || a.newOwner || '').toString().toLowerCase();
+}
+function eventTokenCell(ev){
+  const t = ev.args.token;
+  if (!t) return '—';
+  const info = tokenInfoCache[t.toLowerCase()];
+  return info ? `${info.symbol} ${addrLink(t)}` : addrLink(t);
+}
+
+// ------------------------------------------------------------------
+// Reports: scan
+// ------------------------------------------------------------------
+document.getElementById('scanBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('scanStatus');
+  if (!timelock){ setStatus(statusEl, 'Load the contract first.', 'err'); return; }
+  try{
+    // Scans issue dozens/hundreds of eth_getLogs calls — a wallet's own RPC
+    // (or the public fallback) can rate-limit that. If a custom RPC was
+    // supplied, use a dedicated read contract bound to it just for the scan,
+    // independent of whatever `provider`/`timelock` are wired to for writes.
+    const customRpc = document.getElementById('customRpc').value.trim();
+    // A custom RPC URL is pinned to POLYGON_CHAIN_ID regardless of the
+    // wallet's current chain, so it's exempt from the network check below —
+    // otherwise, require the connected wallet itself to be on Polygon before
+    // trusting its reads.
+    if (!customRpc) requireNetwork();
+    const scanProvider = customRpc ? new ethers.providers.JsonRpcProvider(customRpc, POLYGON_CHAIN_ID) : provider;
+    const scanContract = customRpc ? new ethers.Contract(timelock.address, TIMELOCK_ABI, scanProvider) : timelock;
+    lastScanProvider = scanProvider;
+
+    const latest = await scanProvider.getBlockNumber();
+    // Bugs 1.5/1.6 fix: previously a non-numeric paste in either field
+    // silently became NaN and produced an opaque RPC error deep in the
+    // scan loop instead of a clear validation message up front.
+    const fromBlock = parseValidatedInt(document.getElementById('scanFrom').value, 'From block', { min: 0, allowEmpty: true, emptyValue: 0 });
+    const chunkRaw = parseValidatedInt(document.getElementById('scanChunk').value, 'Chunk size', { min: 1, allowEmpty: true, emptyValue: 4000 });
+    const chunk = Math.max(500, chunkRaw);
+    if (fromBlock > latest) throw new Error(`From block (${fromBlock}) is beyond the latest block (${latest}).`);
+
+    scannedEvents = [];
+    let start = fromBlock;
+    let totalChunks = Math.ceil((latest - fromBlock + 1) / chunk);
+    let done = 0;
+
+    document.getElementById('scanBtn').disabled = true;
+
+    while (start <= latest){
+      const end = Math.min(start + chunk - 1, latest);
+      setStatus(statusEl, `Scanning blocks ${start.toLocaleString()}–${end.toLocaleString()} of ${latest.toLocaleString()} (chunk ${++done}/${totalChunks})…`);
+      for (const name of EVENT_NAMES){
+        const filter = scanContract.filters[name]();
+        const logs = await scanContract.queryFilter(filter, start, end);
+        scannedEvents.push(...logs);
+      }
+      start = end + 1;
+    }
+
+    scannedEvents.sort((a,b) => a.blockNumber - b.blockNumber || a.logIndex - b.logIndex);
+
+    // Prefetch decimals/symbol for every distinct token seen in this scan so
+    // describeEvent/renderSummary can format amounts correctly per token
+    // instead of guessing. Cheap: getTokenInfo caches, so re-scanning costs
+    // nothing for tokens already looked up.
+    const scanTokens = Array.from(new Set(scannedEvents.map(ev => ev.args.token).filter(Boolean).map(t => t.toLowerCase())));
+    setStatus(statusEl, `Found ${scannedEvents.length} events across ${scanTokens.length} token(s) — loading token metadata…`);
+    for (const t of scanTokens){
+      try{ await getTokenInfo(t); }catch(e){ /* falls back to 18d/TOKEN in fmtAmount */ }
+    }
+
+    renderSummary();
+    renderTxTable();
+    setStatus(statusEl, `Done. Found ${scannedEvents.length} events.`, 'ok');
+    document.getElementById('loadTimestampsBtn').disabled = scannedEvents.length === 0;
+    document.getElementById('exportCsvBtn').disabled = scannedEvents.length === 0;
+  }catch(err){
+    console.error(err);
+    setStatus(statusEl, 'Scan failed: ' + extractRevertReason(err) + ' — try a smaller chunk size or a public RPC with a higher log range limit.', 'err');
+  }finally{
+    document.getElementById('scanBtn').disabled = false;
+  }
+});
+
+function renderSummary(){
+  const section = document.getElementById('reportSummarySection');
+  const container = document.getElementById('reportSummaryByToken');
+  if (!scannedEvents.length){ section.style.display = 'none'; container.innerHTML = ''; return; }
+
+  // token(lowercase) => running totals for that token only
+  const byToken = {};
+  function bucket(tokenAddr){
+    const key = (tokenAddr || 'unknown').toLowerCase();
+    if (!byToken[key]) byToken[key] = {
+      token: tokenAddr, depositedRaw: ethers.BigNumber.from(0), depositedCount: 0,
+      feesRaw: ethers.BigNumber.from(0), feesCount: 0,
+      claimedRaw: ethers.BigNumber.from(0), claimedCount: 0,
+      cancelledCount: 0, rescueCount: 0, beneficiaries: new Set()
+    };
+    return byToken[key];
+  }
+
+  scannedEvents.forEach(ev => {
+    const a = ev.args;
+    if (!a.token) return; // OwnershipTransferred has no token — not part of per-token totals
+    const b = bucket(a.token);
+    switch(ev.event){
+      case 'LockCreated':
+        b.depositedRaw = b.depositedRaw.add(a.totalAmount); b.depositedCount++;
+        b.beneficiaries.add(a.beneficiary);
+        break;
+      case 'LockToppedUp':
+        b.depositedRaw = b.depositedRaw.add(a.addedAmount); b.depositedCount++;
+        break;
+      case 'FeeCharged':
+        b.feesRaw = b.feesRaw.add(a.feeAmount); b.feesCount++;
+        break;
+      case 'Claimed':
+        b.claimedRaw = b.claimedRaw.add(a.amount); b.claimedCount++;
+        b.beneficiaries.add(a.beneficiary);
+        break;
+      case 'LockCancelled':
+        b.cancelledCount++;
+        break;
+      case 'SurplusRescued':
+        b.rescueCount++;
+        break;
+    }
+  });
+
+  const tokenKeys = Object.keys(byToken);
+  if (!tokenKeys.length){ section.style.display = 'none'; container.innerHTML = ''; return; }
+
+  container.innerHTML = tokenKeys.map(key => {
+    const b = byToken[key];
+    const info = tokenInfoCache[key] || null;
+    const label = info ? `${info.symbol} — ${shortAddr(b.token)}` : shortAddr(b.token);
+    return `
+      <div class="subsection">
+        <h3 class="mono" style="font-size:13px;">${label}</h3>
+        <div class="stat-grid">
+          <div class="stat-card accent">
+            <div class="stat-label">Net deposited (all paths: createLock, createSelfLock, topUp, topUpMyLock)</div>
+            <div class="stat-value">${fmtAmount(b.depositedRaw, info)}</div>
+            <div class="stat-sub">${b.depositedCount} deposit${b.depositedCount===1?'':'s'}</div>
+          </div>
+          <div class="stat-card warn">
+            <div class="stat-label">Total fees charged</div>
+            <div class="stat-value">${fmtAmount(b.feesRaw, info)}</div>
+            <div class="stat-sub">${b.feesCount} charge${b.feesCount===1?'':'s'}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total claimed by beneficiaries</div>
+            <div class="stat-value">${fmtAmount(b.claimedRaw, info)}</div>
+            <div class="stat-sub">${b.claimedCount} claim${b.claimedCount===1?'':'s'}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Known beneficiaries</div>
+            <div class="stat-value">${b.beneficiaries.size}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Locks cancelled / refunded</div>
+            <div class="stat-value">${b.cancelledCount}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Surplus rescues</div>
+            <div class="stat-value">${b.rescueCount}</div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  section.style.display = 'block';
+}
+
+function renderTxTable(){
+  const addrFilter = document.getElementById('reportFilterAddr').value.trim().toLowerCase();
+  const tokenFilter = document.getElementById('reportFilterToken').value.trim().toLowerCase();
+  const typeFilter = document.getElementById('reportFilterType').value;
+
+  const filtered = scannedEvents.filter(ev => {
+    if (typeFilter && ev.event !== typeFilter) return false;
+    if (addrFilter && eventAddress(ev) !== addrFilter) return false;
+    if (tokenFilter && (!ev.args.token || ev.args.token.toLowerCase() !== tokenFilter)) return false;
+    return true;
+  });
+
+  const body = document.getElementById('txTableBody');
+  body.innerHTML = filtered.map(ev => `
+    <tr>
+      <td class="mono">${ev.blockNumber}</td>
+      <td class="mono" data-block="${ev.blockNumber}">${ev.timestamp ? fmtTimestamp(ev.timestamp) : '—'}</td>
+      <td>${eventTag(ev)} ${ev.event}</td>
+      <td class="mono">${eventTokenCell(ev)}</td>
+      <td class="wrap-cell mono">${describeEvent(ev)}</td>
+      <td class="mono">${txLink(ev.transactionHash)}</td>
+    </tr>
+  `).join('');
+  document.getElementById('txTableWrap').style.display = scannedEvents.length ? 'block' : 'none';
+}
+
+document.getElementById('reportFilterAddr').addEventListener('input', renderTxTable);
+document.getElementById('reportFilterToken').addEventListener('input', renderTxTable);
+document.getElementById('reportFilterType').addEventListener('change', renderTxTable);
+
+document.getElementById('loadTimestampsBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('scanStatus');
+  const uniqueBlocks = Array.from(new Set(scannedEvents.map(e => e.blockNumber)));
+  const cap = 400;
+  const toFetch = uniqueBlocks.slice(0, cap);
+  setStatus(statusEl, `Fetching timestamps for ${toFetch.length} blocks${uniqueBlocks.length > cap ? ` (capped at ${cap} of ${uniqueBlocks.length} to limit RPC load)` : ''}…`);
+  const blockTimeMap = {};
+  for (let i = 0; i < toFetch.length; i++){
+    const bn = toFetch[i];
+    try{
+      const block = await (lastScanProvider || provider).getBlock(bn);
+      blockTimeMap[bn] = block.timestamp;
+    }catch(e){ /* skip on failure */ }
+    if (i % 20 === 0) setStatus(statusEl, `Fetching timestamps… ${i}/${toFetch.length}`);
+  }
+  scannedEvents.forEach(ev => { if (blockTimeMap[ev.blockNumber] !== undefined) ev.timestamp = blockTimeMap[ev.blockNumber]; });
+  renderTxTable();
+  setStatus(statusEl, 'Timestamps loaded.', 'ok');
+});
+
+document.getElementById('exportCsvBtn').addEventListener('click', () => {
+  const header = 'block,timestamp,event,txHash,argsJson\n';
+  const rows = scannedEvents.map(ev => {
+    const argsObj = {};
+    Object.keys(ev.args).forEach(k => { if (isNaN(Number(k))) argsObj[k] = ev.args[k].toString ? ev.args[k].toString() : ev.args[k]; });
+    const csvSafe = s => `"${String(s).replace(/"/g,'""')}"`;
+    return [ev.blockNumber, ev.timestamp || '', ev.event, ev.transactionHash, csvSafe(JSON.stringify(argsObj))].join(',');
+  });
+  const csv = header + rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const addrTag = timelock && timelock.address ? timelock.address.slice(2,8) : 'report';
+  a.href = url; a.download = `polygontimelock-${addrTag}-report.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
